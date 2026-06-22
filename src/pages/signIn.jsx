@@ -1,15 +1,3 @@
-// import React from 'react'
-
-// const signIn = () => {
-//   return (
-//     <div>signIn</div>
-//   )
-// }
-
-// export default signIn
-
-
-
 import { useState } from "react";
 import { useNavigate } from 'react-router-dom'
 
@@ -19,6 +7,8 @@ export default function SignIn({ onSignIn, onGoSignUp }) {
   const [err, setErr]     = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+
+  const goToSignUp = () => navigate('/signUp');
 
   function handleSubmit() {
     if (!email || !pass) { setErr("Please fill in all fields."); return; }
@@ -86,7 +76,7 @@ export default function SignIn({ onSignIn, onGoSignUp }) {
 
         <p className="text-center text-sm text-white/60 mt-6 mb-0">
           Don't have an account?{" "}
-          <span onClick={onGoSignUp} className="text-teal-400 font-bold cursor-pointer">Create account</span>
+          <span onClick={goToSignUp} className="text-teal-400 font-bold cursor-pointer">Create account</span>
         </p>
       </div>
     </div>
