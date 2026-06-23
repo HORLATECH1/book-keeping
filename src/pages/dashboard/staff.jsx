@@ -1,16 +1,5 @@
-<<<<<<< HEAD
 import { useState } from "react";
-=======
-import React, { useState } from "react";
-import {
-  FiSearch,
-  FiEdit2,
-  FiTrash2,
-  FiRefreshCw,
-  FiX,
-  FiChevronDown,
-} from "react-icons/fi";
->>>>>>> 4175f9440f955ba3a414c07e078f0fe7f3575f1a
+import { FiRefreshCw, FiChevronDown, FiX, FiSearch, FiEdit2, FiTrash2 } from "react-icons/fi";
 
 const initialEmployees = [
   {
@@ -297,15 +286,9 @@ export default function EmployeeDashboard() {
                 onClick={closeModal}
                 className="rounded-full border border-slate-200 p-2 text-slate-500 transition hover:bg-slate-100"
               >
-<<<<<<< HEAD
-                <option className="text-black">Active</option>
-                <option className="text-black">Inactive</option>
-              </select>
-=======
                 <FiX size={18} />
               </button>
             </div>
->>>>>>> 4175f9440f955ba3a414c07e078f0fe7f3575f1a
 
             <form onSubmit={handleSave} className="grid gap-4">
               <div className="grid gap-4 sm:grid-cols-2">
