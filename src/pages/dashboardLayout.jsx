@@ -1,12 +1,13 @@
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
+import { auth } from '../firebase'
+import { signOut } from 'firebase/auth'
 
 // ── NAV ──
 const navItems = [
-  { to: "Overview",    label: "Overview",    icon: "⊞" },
+  { to: "",            label: "Overview",     icon: "⊞", end: true },
   { to: "transaction", label: "Transactions", icon: "⇄" },
   { to: "invoices",     label: "Invoices",     icon: "◻" },
-  // { to: "accounts",     label: "Accounts",     icon: "≡" },
-  { to: "settings",      label: "settings",      icon: "⁕" },
+  { to: "settings",      label: "Settings",      icon: "⁕" },
   { to: "staff",        label: "Staff",        icon: "👥" },
 ];
 
@@ -18,10 +19,18 @@ const greetingHour = () => {
 }
 
 export default function DashboardLayout() {
-  const navigate = useNavigate()
+  const navigate = useNavigate();
+  const user = auth.currentUser;
+  const companyName = user ? localStorage.getItem(`company_${user.uid}`) || 'Books-Flow Partner' : 'Books-Flow Partner';
+
+  const handleSignOut = () => {
+    signOut(auth).then(() => {
+      navigate('/');
+    });
+  };
 
   return (
-    <div className="min-h-screen bg-stone-100 flex">
+    <div className="min-h-screen bg-stone-100 flex font-sans">
       {/* Sidebar */}
       <div className="w-[220px] bg-[#1A1A2E] min-h-screen flex flex-col flex-shrink-0">
         {/* Logo */}
@@ -30,7 +39,7 @@ export default function DashboardLayout() {
             <div className="w-8 h-8 rounded-lg bg-teal-400 flex items-center justify-center font-extrabold text-base text-[#1A1A2E]">₦</div>
             <div>
               <p className="m-0 font-bold text-white text-sm">Books-Flow</p>
-              <p className="m-0 text-[10px] text-white/40">Isla Books Ltd</p>
+              <p className="m-0 text-[10px] text-white/40 truncate w-[120px]">{companyName}</p>
             </div>
           </div>
         </div>
@@ -40,39 +49,42 @@ export default function DashboardLayout() {
             <NavLink
               key={item.to}
               to={item.to}
-              // end={item.end}
+              end={item.end}
               className={({ isActive }) =>
                 `flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${isActive
-                  ? 'bg-orange-50 text-orange-600 shadow-sm'
-                  : 'text-stone-500 hover:text-stone-800 hover:bg-stone-50'
+                  ? 'bg-teal-500/20 text-teal-400 font-semibold shadow-sm'
+                  : 'text-white/60 hover:text-white hover:bg-white/10'
                 }`
               }
             >
               <span className="text-base">{item.icon}</span>
               {item.label}
             </NavLink>
-
-
-
           ))}
-
-
         </nav>
 
-        {/* User */}
-        {/* <div className="px-4 py-4 border-t border-stone-100">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-orange-300 to-rose-300 flex items-center justify-center text-white text-xs font-bold shadow-sm">
-              👤
+        {/* User Profile & Sign Out */}
+        {user && (
+          <div className="px-4 py-4 border-t border-white/10 mt-auto">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-teal-400 to-emerald-500 flex items-center justify-center text-[#1A1A2E] text-xs font-bold shadow-sm">
+                {user.displayName ? user.displayName.charAt(0).toUpperCase() : '👤'}
+              </div>
+              <div className="overflow-hidden flex-1">
+                <p className="text-white text-xs font-semibold truncate m-0">{user.displayName || 'User'}</p>
+                <p className="text-white/40 text-[10px] truncate m-0">{user.email}</p>
+              </div>
             </div>
-            <div className="overflow-hidden">
-              <p className="text-stone-700 text-xs font-semibold truncate">You</p>
-              <p className="text-stone-400 text-xs truncate">dev1@liquidlift.app</p>
-            </div>
+            <button
+              onClick={handleSignOut}
+              className="w-full py-2 px-3 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 text-[11px] font-semibold transition-all text-center cursor-pointer border border-red-500/20"
+            >
+              Sign Out ⤶
+            </button>
           </div>
-        </div> */}
-        
+        )}
       </div>
+
 
       {/* Main */}
       <div className="flex-1 flex flex-col">

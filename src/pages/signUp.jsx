@@ -1,7 +1,9 @@
 import { useState } from "react";
 import { useNavigate } from 'react-router-dom'
+import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth'
+import { auth } from '../firebase'
 
-export default function SignUp({ onSignUp, onGoSignIn }) {
+export default function SignUp({ onSignUp }) {
   const [form, setForm] = useState({ name:"", company:"", email:"", pass:"", confirm:"" });
   const [err, setErr] = useState("");
   const [loading, setLoading] = useState(false);
@@ -15,8 +17,33 @@ export default function SignUp({ onSignUp, onGoSignIn }) {
     if (form.pass !== form.confirm) { setErr("Passwords do not match."); return; }
     if (form.pass.length < 6) { setErr("Password must be at least 6 characters."); return; }
     setLoading(true); setErr("");
-    setTimeout(() => { setLoading(false); onSignUp && onSignUp(); }, 1000);
+    createUserWithEmailAndPassword(auth, form.email, form.pass)
+      .then((userCredential) => {
+        // Save company name to local storage so we can display it in dashboard/settings
+        localStorage.setItem(`company_${userCredential.user.uid}`, form.company);
+        return updateProfile(userCredential.user, {
+          displayName: form.name
+        });
+      })
+      .then(() => {
+        setLoading(false);
+        if (typeof onSignUp === 'function') onSignUp();
+        navigate('/dashboard');
+      })
+      .catch((error) => {
+        setLoading(false);
+        let message = error.message;
+        if (error.code === 'auth/email-already-in-use') {
+          message = "This email is already registered.";
+        } else if (error.code === 'auth/invalid-email') {
+          message = "Invalid email address format.";
+        } else if (error.code === 'auth/weak-password') {
+          message = "Password is too weak.";
+        }
+        setErr(message);
+      });
   }
+
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#1A1A2E] via-[#2D3561] to-[#1A1A2E] flex items-center justify-center font-sans">

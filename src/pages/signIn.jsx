@@ -1,24 +1,45 @@
 import { useState } from "react";
 import { useNavigate } from 'react-router-dom'
+import { signInWithEmailAndPassword } from 'firebase/auth'
+import { auth } from '../firebase'
 
-export default function SignIn({ onSignIn, onGoSignUp }) {
+export default function SignIn({ onSignIn }) {
   const [email, setEmail] = useState("");
   const [pass, setPass]   = useState("");
   const [err, setErr]     = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  
 
   const goToSignUp = () => navigate('/signUp');
 
   function handleSubmit() {
     if (!email || !pass) { setErr("Please fill in all fields."); return; }
     setLoading(true); setErr("");
-    setTimeout(() => {
-      setLoading(false);
-      if (typeof onSignIn === 'function') onSignIn();
-      navigate('/dashboard');
-    }, 900);
+    signInWithEmailAndPassword(auth, email, pass)
+      .then(() => {
+        setLoading(false);
+        if (typeof onSignIn === 'function') onSignIn();
+        navigate('/dashboard');
+      })
+      .catch((error) => {
+        setLoading(false);
+        let message = error.message;
+        if (
+          error.code === 'auth/invalid-credential' ||
+          error.code === 'auth/wrong-password' ||
+          error.code === 'auth/user-not-found'
+        ) {
+          message = "Invalid email or password.";
+        } else if (error.code === 'auth/invalid-email') {
+          message = "Invalid email address format.";
+        } else if (error.code === 'auth/too-many-requests') {
+          message = "Too many attempts. Access temporarily disabled.";
+        }
+        setErr(message);
+      });
   }
+
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#1A1A2E] via-[#2D3561] to-[#1A1A2E] flex items-center justify-center font-sans">

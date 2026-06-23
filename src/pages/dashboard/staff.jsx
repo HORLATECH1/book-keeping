@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 
 const Staff = () => {
   const [showModal, setShowModal] = useState(false);
@@ -236,7 +236,7 @@ const Staff = () => {
               >
                 <option className="text-black">Active</option>
                 <option className="text-black">Inactive</option>
-     np         </select>
+              </select>
 
               <div className="flex gap-3 pt-2">
                 <button
