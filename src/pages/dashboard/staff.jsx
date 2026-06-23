@@ -1,255 +1,377 @@
 import React, { useState } from "react";
+import {
+  FiSearch,
+  FiEdit2,
+  FiTrash2,
+  FiRefreshCw,
+  FiX,
+  FiChevronDown,
+} from "react-icons/fi";
 
-const Staff = () => {
-  const [showModal, setShowModal] = useState(false);
+const initialEmployees = [
+  {
+    id: 1,
+    initials: "AO",
+    color: "bg-blue-500",
+    name: "Adaeze Obi",
+    email: "adaeze@acme.ng",
+    position: "CEO / Owner",
+    department: "Executive",
+    salary: "—",
+    joined: "Jan 2021",
+  },
+  {
+    id: 2,
+    initials: "EN",
+    color: "bg-orange-500",
+    name: "Emeka Nwosu",
+    email: "emeka@acme.ng",
+    position: "Senior Accountant",
+    department: "Finance",
+    salary: "₦450,000",
+    joined: "Mar 2022",
+  },
+  {
+    id: 3,
+    initials: "FB",
+    color: "bg-emerald-500",
+    name: "Fatima Bello",
+    email: "fatima@acme.ng",
+    position: "HR Manager",
+    department: "HR",
+    salary: "₦380,000",
+    joined: "Jul 2022",
+  },
+  {
+    id: 4,
+    initials: "CO",
+    color: "bg-violet-500",
+    name: "Chidi Okeke",
+    email: "chidi@acme.ng",
+    position: "Software Engineer",
+    department: "Technology",
+    salary: "₦520,000",
+    joined: "Nov 2022",
+  },
+  {
+    id: 5,
+    initials: "NE",
+    color: "bg-teal-500",
+    name: "Ngozi Eze",
+    email: "ngozi@acme.ng",
+    position: "Sales Executive",
+    department: "Sales",
+    salary: "₦310,000",
+    joined: "Feb 2023",
+  },
+  {
+    id: 6,
+    initials: "TA",
+    color: "bg-cyan-500",
+    name: "Tunde Adesanya",
+    email: "tunde@acme.ng",
+    position: "Operations Lead",
+    department: "Operations",
+    salary: "₦420,000",
+    joined: "May 2023",
+  },
+];
 
-  const [staffList, setStaffList] = useState([
-    {
-      employee: "John Doe",
-      position: "Manager",
-      department: "Finance",
-      salary: "5000",
-      joined: "2025-01-10",
-      status: "Active",
-    },
-    {
-      employee: "Sarah Johnson",
-      position: "Developer",
-      department: "Tech",
-      salary: "4500",
-      joined: "2025-02-15",
-      status: "Active",
-    },
-    {
-      employee: "Michael Brown",
-      position: "UI/UX Designer",
-      department: "Tech",
-      salary: "4000",
-      joined: "2025-03-05",
-      status: "Inactive",
-    },
-    {
-      employee: "David Wilson",
-      position: "Accountant",
-      department: "Finance",
-      salary: "3800",
-      joined: "2025-01-20",
-      status: "Active",
-    },
-    {
-      employee: "Emily Davis",
-      position: "HR Officer",
-      department: "Human Resources",
-      salary: "3500",
-      joined: "2025-04-01",
-      status: "Active",
-    },
-    {
-      employee: "James Smith",
-      position: "System Admin",
-      department: "Tech",
-      salary: "4800",
-      joined: "2025-02-25",
-      status: "Active",
-    },
-    {
-      employee: "Sophia Taylor",
-      position: "Marketing Lead",
-      department: "Marketing",
-      salary: "4200",
-      joined: "2025-03-12",
-      status: "Inactive",
-    },
-  ]);
-
+export default function EmployeeDashboard() {
+  const [employees, setEmployees] = useState(initialEmployees);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingId, setEditingId] = useState(null);
   const [formData, setFormData] = useState({
-    employee: "",
+    name: "",
+    email: "",
     position: "",
     department: "",
     salary: "",
     joined: "",
-    status: "Active",
   });
 
+  const openEditModal = (employee) => {
+    setEditingId(employee.id);
+    setFormData({
+      name: employee.name,
+      email: employee.email,
+      position: employee.position,
+      department: employee.department,
+      salary: employee.salary,
+      joined: employee.joined,
+    });
+    setIsModalOpen(true);
+  };
+
   const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
+    const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSave = (e) => {
     e.preventDefault();
-
-    setStaffList([...staffList, formData]);
-
-    setFormData({
-      employee: "",
-      position: "",
-      department: "",
-      salary: "",
-      joined: "",
-      status: "Active",
-    });
-
-    setShowModal(false);
+    setEmployees((prev) =>
+      prev.map((employee) =>
+        employee.id === editingId ? { ...employee, ...formData } : employee
+      )
+    );
+    setIsModalOpen(false);
+    setEditingId(null);
   };
 
-  const deleteStaff = (index) => {
-    setStaffList(staffList.filter((_, i) => i !== index));
+  const handleDelete = (id) => {
+    setEmployees((prev) => prev.filter((employee) => employee.id !== id));
+  };
+
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setEditingId(null);
   };
 
   return (
-    <div className="min-h-screen p-8 bg-gradient-to-br from-[#0A192F] via-[#112240] to-[#0F172A]">
-      {/* Header */}
-      <div className="flex justify-between items-center mb-8">
-        <h1 className="text-4xl font-bold bg-gradient-to-r from-teal-400 to-cyan-300 bg-clip-text text-transparent">
-          Staff Management
-        </h1>
+    <div className="min-h-screen bg-slate-50 p-6 font-sans">
+      {/* Top Actions */}
+      <div className="mb-6 flex justify-end gap-3">
+        <button className="flex h-11 w-11 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-500 transition hover:bg-slate-50">
+          <FiRefreshCw size={18} />
+        </button>
 
-        <button
-          onClick={() => setShowModal(true)}
-          className="bg-teal-600 hover:bg-teal-500 text-white px-5 py-3 rounded-xl shadow-lg shadow-teal-500/20 transition duration-300"
-        >
-          + Add Staff
+        <button className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-600">
+          Copy
+          <FiChevronDown size={16} />
+        </button>
+
+        <button className="rounded-xl bg-slate-900 px-5 py-2.5 text-sm font-semibold text-white shadow-sm">
+          Publish
+        </button>
+
+        <button className="flex h-11 w-11 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-500 transition hover:bg-slate-50">
+          <FiX size={18} />
         </button>
       </div>
 
-      {/* Table */}
-      <div className="overflow-x-auto rounded-3xl backdrop-blur-lg bg-[#112240]/40 border border-teal-500/20 shadow-[0_0_40px_rgba(20,184,166,0.15)]">
-        <table className="w-full">
-          <thead className="bg-[#112240]/90 text-white">
-            <tr>
-              <th className="p-4">Employee</th>
-              <th className="p-4">Position</th>
-              <th className="p-4">Department</th>
-              <th className="p-4">Monthly Salary</th>
-              <th className="p-4">Joined</th>
-              <th className="p-4">Status</th>
-              <th className="p-4">Action</th>
-            </tr>
-          </thead>
+      {/* Search + Filters */}
+      <div className="mb-6 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+        <div className="relative flex-1">
+          <FiSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
 
-          <tbody>
-            {staffList.map((staff, index) => (
-              <tr
-                key={index}
-                className="text-center border-b border-white/10 text-white hover:bg-teal-500/5 transition"
-              >
-                <td className="p-4">{staff.employee}</td>
-                <td className="p-4">{staff.position}</td>
-                <td className="p-4">{staff.department}</td>
-                <td className="p-4 font-semibold text-teal-300">
-                  ${staff.salary}
-                </td>
-                <td className="p-4">{staff.joined}</td>
+          <input
+            type="text"
+            placeholder="Search by name; role or department..."
+            className="h-14 w-full rounded-2xl border border-slate-200 bg-white pl-12 pr-4 text-sm outline-none placeholder:text-slate-400 focus:border-teal-400"
+          />
+        </div>
 
-                <td className="p-4">
-                  <span
-                    className={`px-3 py-1 rounded-full text-sm font-semibold ${
-                      staff.status === "Active"
-                        ? "bg-teal-500 text-white"
-                        : "bg-slate-600 text-gray-200"
-                    }`}
-                  >
-                    {staff.status}
-                  </span>
-                </td>
+        <div className="flex gap-3">
+          <button className="rounded-xl bg-teal-500 px-6 py-3 text-sm font-medium text-white shadow-sm">
+            All
+          </button>
 
-                <td className="p-4">
-                  <button
-                    onClick={() => deleteStaff(index)}
-                    className="bg-[#1E293B] hover:bg-[#334155] border border-teal-500/20 px-3 py-2 rounded-lg text-white transition"
-                  >
-                    Delete
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+          <button className="rounded-xl border border-slate-200 bg-white px-6 py-3 text-sm font-medium text-slate-600">
+            Active
+          </button>
+
+          <button className="rounded-xl border border-slate-200 bg-white px-6 py-3 text-sm font-medium text-slate-600">
+            Inactive
+          </button>
+        </div>
       </div>
 
-      {/* Modal */}
-      {showModal && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex justify-center items-center">
-          <div className="bg-[#112240]/95 backdrop-blur-xl border border-teal-500/20 p-6 rounded-3xl w-[450px] text-white shadow-[0_0_40px_rgba(20,184,166,0.15)]">
-            <h2 className="text-2xl font-bold mb-5 text-teal-300">
-              Add New Staff
-            </h2>
+      {/* Table */}
+      <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
+        <div className="overflow-x-auto">
+          <table className="w-full min-w-[1050px]">
+            <thead>
+              <tr className="border-b border-slate-100">
+                {[
+                  "EMPLOYEE",
+                  "POSITION",
+                  "DEPARTMENT",
+                  "MONTHLY SALARY",
+                  "JOINED",
+                  "ACTIONS",
+                ].map((header) => (
+                  <th
+                    key={header}
+                    className="px-6 py-5 text-left text-xs font-bold tracking-wider text-slate-500"
+                  >
+                    {header}
+                  </th>
+                ))}
+              </tr>
+            </thead>
 
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <input
-                type="text"
-                name="employee"
-                placeholder="Employee Name"
-                value={formData.employee}
-                onChange={handleChange}
-                className="w-full p-3 rounded-xl bg-[#0A192F]/80 border border-teal-500/30 text-white focus:outline-none focus:border-teal-400"
-                required
-              />
+            <tbody>
+              {employees.map((employee) => (
+                <tr
+                  key={employee.id}
+                  className="border-b border-slate-100 last:border-0"
+                >
+                  {/* Employee */}
+                  <td className="px-6 py-5">
+                    <div className="flex items-center gap-4">
+                      <div
+                        className={`flex h-11 w-11 items-center justify-center rounded-full text-sm font-bold text-white ${employee.color}`}
+                      >
+                        {employee.initials}
+                      </div>
 
-              <input
-                type="text"
-                name="position"
-                placeholder="Position"
-                value={formData.position}
-                onChange={handleChange}
-                className="w-full p-3 rounded-xl bg-[#0A192F]/80 border border-teal-500/30 text-white focus:outline-none focus:border-teal-400"
-                required
-              />
+                      <div>
+                        <h3 className="text-sm font-semibold text-slate-800">
+                          {employee.name}
+                        </h3>
 
-              <input
-                type="text"
-                name="department"
-                placeholder="Department"
-                value={formData.department}
-                onChange={handleChange}
-                className="w-full p-3 rounded-xl bg-[#0A192F]/80 border border-teal-500/30 text-white focus:outline-none focus:border-teal-400"
-                required
-              />
+                        <p className="mt-1 text-xs text-slate-400">
+                          {employee.email}
+                        </p>
+                      </div>
+                    </div>
+                  </td>
 
-              <input
-                type="number"
-                name="salary"
-                placeholder="Monthly Salary"
-                value={formData.salary}
-                onChange={handleChange}
-                className="w-full p-3 rounded-xl bg-[#0A192F]/80 border border-teal-500/30 text-white focus:outline-none focus:border-teal-400"
-                required
-              />
+                  {/* Position */}
+                  <td className="px-6 py-5 text-sm text-slate-700">
+                    {employee.position}
+                  </td>
 
-              <input
-                type="date"
-                name="joined"
-                value={formData.joined}
-                onChange={handleChange}
-                className="w-full p-3 rounded-xl bg-[#0A192F]/80 border border-teal-500/30 text-white focus:outline-none focus:border-teal-400"
-                required
-              />
+                  {/* Department */}
+                  <td className="px-6 py-5">
+                    <span className="rounded-full bg-slate-100 px-4 py-2 text-xs font-medium text-slate-500">
+                      {employee.department}
+                    </span>
+                  </td>
 
-              <select
-                name="status"
-                value={formData.status}
-                onChange={handleChange}
-                className="w-full p-3 rounded-xl bg-[#0A192F]/80 border border-teal-500/30 text-white focus:outline-none focus:border-teal-400"
+                  {/* Salary */}
+                  <td className="px-6 py-5 text-sm font-semibold text-slate-800">
+                    {employee.salary}
+                  </td>
+
+                  {/* Joined */}
+                  <td className="px-6 py-5 text-sm text-slate-600">
+                    {employee.joined}
+                  </td>
+
+                  {/* Actions */}
+                  <td className="px-6 py-5">
+                    <div className="flex gap-3">
+                      <button
+                        onClick={() => openEditModal(employee)}
+                        className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 transition hover:bg-slate-50"
+                      >
+                        <FiEdit2 className="text-orange-400" />
+                        Edit
+                      </button>
+
+                      <button
+                        onClick={() => handleDelete(employee.id)}
+                        className="flex items-center gap-2 rounded-xl bg-red-100 px-4 py-3 text-sm font-medium text-red-500 transition hover:bg-red-200"
+                      >
+                        <FiTrash2 />
+                        Delete
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {isModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 px-4">
+          <div className="w-full max-w-2xl rounded-3xl bg-white p-6 shadow-2xl">
+            <div className="mb-6 flex items-center justify-between">
+              <div>
+                <h2 className="text-xl font-semibold text-slate-900">Edit Employee</h2>
+                <p className="text-sm text-slate-500">Update the selected employee details.</p>
+              </div>
+              <button
+                type="button"
+                onClick={closeModal}
+                className="rounded-full border border-slate-200 p-2 text-slate-500 transition hover:bg-slate-100"
               >
-                <option className="text-black">Active</option>
-                <option className="text-black">Inactive</option>
-     np         </select>
+                <FiX size={18} />
+              </button>
+            </div>
 
-              <div className="flex gap-3 pt-2">
+            <form onSubmit={handleSave} className="grid gap-4">
+              <div className="grid gap-4 sm:grid-cols-2">
+                <input
+                  type="text"
+                  name="name"
+                  value={formData.name}
+                  onChange={handleChange}
+                  placeholder="Name"
+                  className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none focus:border-teal-400 focus:bg-white"
+                  required
+                />
+                <input
+                  type="email"
+                  name="email"
+                  value={formData.email}
+                  onChange={handleChange}
+                  placeholder="Email"
+                  className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none focus:border-teal-400 focus:bg-white"
+                  required
+                />
+              </div>
+
+              <div className="grid gap-4 sm:grid-cols-2">
+                <input
+                  type="text"
+                  name="position"
+                  value={formData.position}
+                  onChange={handleChange}
+                  placeholder="Position"
+                  className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none focus:border-teal-400 focus:bg-white"
+                  required
+                />
+                <input
+                  type="text"
+                  name="department"
+                  value={formData.department}
+                  onChange={handleChange}
+                  placeholder="Department"
+                  className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none focus:border-teal-400 focus:bg-white"
+                  required
+                />
+              </div>
+
+              <div className="grid gap-4 sm:grid-cols-2">
+                <input
+                  type="text"
+                  name="salary"
+                  value={formData.salary}
+                  onChange={handleChange}
+                  placeholder="Monthly Salary"
+                  className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none focus:border-teal-400 focus:bg-white"
+                  required
+                />
+                <input
+                  type="text"
+                  name="joined"
+                  value={formData.joined}
+                  onChange={handleChange}
+                  placeholder="Joined"
+                  className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none focus:border-teal-400 focus:bg-white"
+                  required
+                />
+              </div>
+
+              <div className="flex flex-col gap-3 sm:flex-row">
                 <button
                   type="submit"
-                  className="flex-1 bg-teal-600 hover:bg-teal-500 py-3 rounded-xl font-semibold transition"
+                  className="flex-1 rounded-2xl bg-teal-500 px-5 py-3 text-sm font-semibold text-white transition hover:bg-teal-600"
                 >
-                  Save
+                  Save Changes
                 </button>
-
                 <button
                   type="button"
-                  onClick={() => setShowModal(false)}
-                  className="flex-1 bg-slate-700 hover:bg-slate-600 py-3 rounded-xl font-semibold transition"
+                  onClick={closeModal}
+                  className="flex-1 rounded-2xl border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
                 >
                   Cancel
                 </button>
@@ -260,6 +382,4 @@ const Staff = () => {
       )}
     </div>
   );
-};
-
-export default Staff;
+}
