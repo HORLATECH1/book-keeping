@@ -1,12 +1,5 @@
-import React, { useState } from "react";
-import {
-  FiSearch,
-  FiEdit2,
-  FiTrash2,
-  FiRefreshCw,
-  FiX,
-  FiChevronDown,
-} from "react-icons/fi";
+import { useState } from "react";
+import { FiRefreshCw, FiChevronDown, FiX, FiSearch, FiEdit2, FiTrash2 } from "react-icons/fi";
 
 const initialEmployees = [
   {

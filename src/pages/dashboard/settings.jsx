@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { auth } from "../../firebase";
+import { updateProfile } from "firebase/auth";
 
 const Toggle = ({ value, onChange }) => (
   <button
@@ -18,12 +20,37 @@ const Toggle = ({ value, onChange }) => (
 );
 
 export default function Settings() {
+  const user = auth.currentUser;
+  const [displayName, setDisplayName] = useState(user?.displayName || "");
+  const [company, setCompany] = useState(user ? localStorage.getItem(`company_${user.uid}`) || "" : "");
+  const [loading, setLoading] = useState(false);
+  const [msg, setMsg] = useState("");
+  const [err, setErr] = useState("");
+
   const [notifications, setNotifications] = useState(true);
   const [emails, setEmails] = useState(false);
   const [digest, setDigest] = useState(true);
 
+  const handleSaveChanges = async () => {
+    if (!user) return;
+    setLoading(true);
+    setMsg("");
+    setErr("");
+    try {
+      await updateProfile(user, { displayName });
+      if (company) {
+        localStorage.setItem(`company_${user.uid}`, company);
+      }
+      setMsg("Profile updated successfully! Refresh to see dashboard update.");
+    } catch (e) {
+      setErr(e.message || "Failed to update profile.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
-    <div className="space-y-6 max-w-lg mx-auto p-4 bg-slate-50 min-h-screen">
+    <div className="space-y-6 max-w-lg mx-auto p-4 bg-slate-50 min-h-screen font-sans">
       {/* Header */}
       <div>
         <h2 className="text-slate-900 font-bold text-2xl">
@@ -40,54 +67,67 @@ export default function Settings() {
           Your Profile
         </h3>
 
+        {msg && (
+          <div className="bg-teal-50 border border-teal-200 text-teal-700 rounded-xl px-4 py-2.5 text-xs font-semibold">
+            ✓ {msg}
+          </div>
+        )}
+        {err && (
+          <div className="bg-red-50 border border-red-200 text-red-600 rounded-xl px-4 py-2.5 text-xs font-semibold">
+            ⚠ {err}
+          </div>
+        )}
+
         <div className="flex items-center gap-4">
-          <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-slate-900 via-blue-700 to-teal-500 flex items-center justify-center text-3xl shadow-lg">
-            👤
+          <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-slate-900 via-blue-700 to-teal-500 flex items-center justify-center text-3xl shadow-lg text-white font-bold">
+            {displayName ? displayName.charAt(0).toUpperCase() : "👤"}
           </div>
 
           <div>
-            <p className="text-slate-800 font-semibold">You</p>
+            <p className="text-slate-800 font-semibold">{displayName || "User"}</p>
             <p className="text-slate-500 text-xs mt-0.5">
-              dev1@liquidlift.app
+              {user?.email || "No email available"}
             </p>
-
-            <button className="text-teal-500 text-xs hover:text-teal-600 transition-colors mt-1.5 font-medium">
-              Change photo →
-            </button>
           </div>
         </div>
 
         <div className="space-y-3">
-          {[
-            {
-              label: "Display Name",
-              value: "You",
-              placeholder: "What should we call you?",
-            },
-            {
-              label: "Email",
-              value: "dev1@liquidlift.app",
-              placeholder: "your@email.com",
-            },
-          ].map((field) => (
-            <div key={field.label}>
-              <label className="text-slate-600 text-xs font-medium block mb-1.5">
-                {field.label}
-              </label>
+          <div>
+            <label className="text-slate-600 text-xs font-medium block mb-1.5">
+              Display Name
+            </label>
+            <input
+              type="text"
+              value={displayName}
+              onChange={(e) => setDisplayName(e.target.value)}
+              placeholder="What should we call you?"
+              className="w-full bg-slate-50 border border-slate-200 text-slate-800 text-sm rounded-xl px-4 py-2.5 focus:outline-none focus:border-teal-400 focus:ring-2 focus:ring-teal-200 transition-all placeholder-slate-400"
+            />
+          </div>
 
-              <input
-                defaultValue={field.value}
-                placeholder={field.placeholder}
-                className="w-full bg-slate-50 border border-slate-200 text-slate-800 text-sm rounded-xl px-4 py-2.5 focus:outline-none focus:border-teal-400 focus:ring-2 focus:ring-teal-200 transition-all placeholder-slate-400"
-              />
-            </div>
-          ))}
+          <div>
+            <label className="text-slate-600 text-xs font-medium block mb-1.5">
+              Company Name
+            </label>
+            <input
+              type="text"
+              value={company}
+              onChange={(e) => setCompany(e.target.value)}
+              placeholder="Your company name"
+              className="w-full bg-slate-50 border border-slate-200 text-slate-800 text-sm rounded-xl px-4 py-2.5 focus:outline-none focus:border-teal-400 focus:ring-2 focus:ring-teal-200 transition-all placeholder-slate-400"
+            />
+          </div>
         </div>
 
-        <button className="bg-gradient-to-r from-slate-900 to-teal-500 hover:from-slate-800 hover:to-teal-400 text-white text-sm font-semibold px-5 py-2.5 rounded-xl shadow-lg transition-all duration-300">
-          Save Changes
+        <button
+          onClick={handleSaveChanges}
+          disabled={loading}
+          className="bg-gradient-to-r from-slate-900 to-teal-500 hover:from-slate-800 hover:to-teal-400 text-white text-sm font-semibold px-5 py-2.5 rounded-xl shadow-lg transition-all duration-300 cursor-pointer disabled:opacity-50"
+        >
+          {loading ? "Saving..." : "Save Changes"}
         </button>
       </div>
+
 
       {/* Preferences */}
       <div className="bg-white rounded-3xl p-6 shadow-lg border border-slate-100 hover:shadow-xl transition-all space-y-5">

@@ -1,14 +1,35 @@
-import React, { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { auth } from '../../firebase'
 
 export default function Transaction() {
-  const [transactions, setTransactions] = useState([
-    { id: 1, date: 'Jun 14', description: 'Stripe payout — May', account: 'Revenue', type: 'credit', amount: 8420.00, status: 'cleared' },
-    { id: 2, date: 'Jun 13', description: 'AWS infrastructure', account: 'Expenses', type: 'debit', amount: 1203.45, status: 'cleared' },
-    { id: 3, date: 'Jun 12', description: 'Office rent — June', account: 'Expenses', type: 'debit', amount: 3500.00, status: 'cleared' },
-    { id: 4, date: 'Jun 11', description: 'Client: Nnamdi Ltd', account: 'Revenue', type: 'credit', amount: 5000.00, status: 'pending' },
-    { id: 5, date: 'Jun 10', description: 'Payroll — 8 staff', account: 'Expenses', type: 'debit', amount: 12400.00, status: 'cleared' },
-    { id: 6, date: 'Jun 09', description: 'Google Ads', account: 'Marketing', type: 'debit', amount: 620.00, status: 'cleared' },
-  ])
+  const [transactions, setTransactions] = useState(() => {
+    const user = auth.currentUser;
+    const key = user ? `transactions_${user.uid}` : 'transactions_default';
+    const saved = localStorage.getItem(key);
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch (e) {
+        console.error(e);
+      }
+    }
+    return [
+      { id: 1, date: 'Jun 14', description: 'Stripe payout — May', account: 'Revenue', type: 'credit', amount: 8420.00, status: 'cleared' },
+      { id: 2, date: 'Jun 13', description: 'AWS infrastructure', account: 'Expenses', type: 'debit', amount: 1203.45, status: 'cleared' },
+      { id: 3, date: 'Jun 12', description: 'Office rent — June', account: 'Expenses', type: 'debit', amount: 3500.00, status: 'cleared' },
+      { id: 4, date: 'Jun 11', description: 'Client: Nnamdi Ltd', account: 'Revenue', type: 'credit', amount: 5000.00, status: 'pending' },
+      { id: 5, date: 'Jun 10', description: 'Payroll — 8 staff', account: 'Expenses', type: 'debit', amount: 12400.00, status: 'cleared' },
+      { id: 6, date: 'Jun 09', description: 'Google Ads', account: 'Marketing', type: 'debit', amount: 620.00, status: 'cleared' },
+    ];
+  })
+
+  useEffect(() => {
+    const user = auth.currentUser;
+    if (user) {
+      localStorage.setItem(`transactions_${user.uid}`, JSON.stringify(transactions));
+    }
+  }, [transactions]);
+
   
   const [showForm, setShowForm] = useState(false)
   const [editId, setEditId] = useState(null)
@@ -102,7 +123,9 @@ export default function Transaction() {
       {/* Add Transaction Form */}
       {showForm && (
         <div className="bg-white rounded-xl shadow-sm p-6 border border-stone-200">
-          <h2 className="text-lg font-bold text-stone-800 mb-4">Add New Transaction</h2>
+          <h2 className="text-lg font-bold text-stone-800 mb-4">
+            {editId ? 'Edit Transaction' : 'Add New Transaction'}
+          </h2>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="grid grid-cols-3 gap-4">
               <div>
@@ -140,7 +163,7 @@ export default function Transaction() {
               </div>
             </div>
 
-            <div className="grid grid-cols-4 gap-4">
+            <div className="grid grid-cols-3 gap-4">
               <div>
                 <label className="block text-sm font-semibold text-stone-700 mb-2">Type</label>
                 <select
@@ -177,17 +200,25 @@ export default function Transaction() {
                   <option value="pending">Pending</option>
                 </select>
               </div>
-              <div className="flex items-end">
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className={`w-full py-2 rounded-lg font-semibold text-white transition-colors ${
-                    loading ? 'bg-teal-300 cursor-not-allowed' : 'bg-teal-400 hover:bg-teal-500'
-                  }`}
-                >
-                  {loading ? 'Adding...' : 'Add'}
-                </button>
-              </div>
+            </div>
+
+            <div className="flex gap-2 justify-end">
+              <button
+                type="button"
+                onClick={handleCancelEdit}
+                className="px-4 py-2 rounded-lg bg-stone-100 text-stone-700 hover:bg-stone-200 font-medium transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={loading}
+                className={`px-4 py-2 rounded-lg font-semibold text-white transition-colors ${
+                  loading ? 'bg-teal-300 cursor-not-allowed' : 'bg-teal-400 hover:bg-teal-500'
+                }`}
+              >
+                {loading ? (editId ? 'Saving...' : 'Adding...') : (editId ? 'Save' : 'Add')}
+              </button>
             </div>
           </form>
         </div>

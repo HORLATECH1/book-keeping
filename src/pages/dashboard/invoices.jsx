@@ -1,11 +1,32 @@
-import React, { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { auth } from '../../firebase'
 
 export default function Invoices() {
-  const [invoices, setInvoices] = useState([
-    { id: 1, date: 'Jun 14', invoiceNo: 'INV-1001', customer: 'Nnamdi Ltd', description: 'Website redesign', due: 'Jul 14', amount: 8420.0, status: 'paid' },
-    { id: 2, date: 'Jun 01', invoiceNo: 'INV-0999', customer: 'Olivia Co', description: 'Monthly retainer', due: 'Jul 01', amount: 1203.45, status: 'unpaid' },
-    { id: 3, date: 'May 20', invoiceNo: 'INV-0988', customer: 'Acme Corp', description: 'Consulting', due: 'Jun 20', amount: 3500.0, status: 'overdue' },
-  ])
+  const [invoices, setInvoices] = useState(() => {
+    const user = auth.currentUser;
+    const key = user ? `invoices_${user.uid}` : 'invoices_default';
+    const saved = localStorage.getItem(key);
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch (e) {
+        console.error(e);
+      }
+    }
+    return [
+      { id: 1, date: 'Jun 14', invoiceNo: 'INV-1001', customer: 'Nnamdi Ltd', description: 'Website redesign', due: 'Jul 14', amount: 8420.0, status: 'paid' },
+      { id: 2, date: 'Jun 01', invoiceNo: 'INV-0999', customer: 'Olivia Co', description: 'Monthly retainer', due: 'Jul 01', amount: 1203.45, status: 'unpaid' },
+      { id: 3, date: 'May 20', invoiceNo: 'INV-0988', customer: 'Acme Corp', description: 'Consulting', due: 'Jun 20', amount: 3500.0, status: 'overdue' },
+    ];
+  })
+
+  useEffect(() => {
+    const user = auth.currentUser;
+    if (user) {
+      localStorage.setItem(`invoices_${user.uid}`, JSON.stringify(invoices));
+    }
+  }, [invoices]);
+
 
   const [showForm, setShowForm] = useState(false)
   const [editId, setEditId] = useState(null)
@@ -126,9 +147,7 @@ export default function Invoices() {
             </div>
 
             <div className="flex gap-2 justify-end">
-              {editId && (
-                <button type="button" onClick={handleCancelEdit} className="px-4 py-2 rounded-lg bg-stone-100 hover:bg-stone-200">Cancel</button>
-              )}
+              <button type="button" onClick={handleCancelEdit} className="px-4 py-2 rounded-lg bg-stone-100 hover:bg-stone-200">Cancel</button>
               <button type="submit" disabled={loading} className={`px-4 py-2 rounded-lg font-semibold text-white ${loading ? 'bg-teal-300 cursor-not-allowed' : 'bg-teal-400 hover:bg-teal-500'}`}>
                 {loading ? 'Saving...' : (editId ? 'Save' : 'Create')}
               </button>
