@@ -1,8 +1,4 @@
-<<<<<<< HEAD
 import { useState, useEffect } from 'react'
-=======
-import { useState } from 'react'
->>>>>>> 2107c906a96fcc3fc5aca5fbfe6725fde99a25c0
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
 import { auth, db } from '../firebase'
 import { signOut } from 'firebase/auth'
@@ -27,7 +23,6 @@ const greetingHour = () => {
 export default function DashboardLayout() {
   const navigate = useNavigate();
   const user = auth.currentUser;
-<<<<<<< HEAD
   const [companyName, setCompanyName] = useState(() => {
     return user ? localStorage.getItem(`company_${user.uid}`) || 'Books-Flow Partner' : 'Books-Flow Partner';
   });
@@ -48,10 +43,6 @@ export default function DashboardLayout() {
     }
     loadCompany();
   }, [user]);
-=======
-  const companyName = user ? localStorage.getItem(`company_${user.uid}`) || 'Books-Flow Partner' : 'Books-Flow Partner';
-  const [sidebarOpen, setSidebarOpen] = useState(false);
->>>>>>> 2107c906a96fcc3fc5aca5fbfe6725fde99a25c0
 
   const handleSignOut = () => {
     signOut(auth).then(() => {

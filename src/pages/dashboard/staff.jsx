@@ -267,7 +267,6 @@ export default function EmployeeDashboard() {
   }
 
   return (
-<<<<<<< HEAD
     <div className="min-h-screen bg-slate-50 p-6 font-sans">
       {/* Top Actions */}
       <div className="mb-6 flex justify-end">
@@ -277,26 +276,6 @@ export default function EmployeeDashboard() {
           className="rounded-xl bg-teal-500 px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-teal-600"
         >
           Add New Details
-=======
-    <div className="min-h-screen bg-slate-50 p-4 sm:p-6 font-sans">
-      {/* Top Actions - hide non-essential on mobile */}
-      <div className="mb-6 flex flex-wrap justify-end gap-2 sm:gap-3">
-        <button className="hidden sm:flex h-11 w-11 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-500 transition hover:bg-slate-50">
-          <FiRefreshCw size={18} />
-        </button>
-
-        <button className="hidden sm:flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-600">
-          Copy
-          <FiChevronDown size={16} />
-        </button>
-
-        <button className="rounded-xl bg-slate-900 px-4 sm:px-5 py-2 sm:py-2.5 text-sm font-semibold text-white shadow-sm touch-target">
-          Publish
-        </button>
-
-        <button className="hidden sm:flex h-11 w-11 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-500 transition hover:bg-slate-50">
-          <FiX size={18} />
->>>>>>> 2107c906a96fcc3fc5aca5fbfe6725fde99a25c0
         </button>
       </div>
 
@@ -307,33 +286,12 @@ export default function EmployeeDashboard() {
 
           <input
             type="text"
-<<<<<<< HEAD
             value={searchText}
             onChange={(e) => setSearchText(e.target.value)}
             placeholder="Search by name, email, position, or department..."
             className="h-14 w-full rounded-2xl border border-slate-200 bg-white pl-12 pr-4 text-sm outline-none placeholder:text-slate-400 focus:border-teal-400"
           />
         </div>
-=======
-            placeholder="Search staff..."
-            className="h-12 sm:h-14 w-full rounded-2xl border border-slate-200 bg-white pl-12 pr-4 text-sm outline-none placeholder:text-slate-400 focus:border-teal-400 focus:ring-1 focus:ring-teal-400"
-          />
-        </div>
-
-        <div className="flex gap-2 sm:gap-3 overflow-x-auto">
-          <button className="rounded-xl bg-teal-500 px-4 sm:px-6 py-2.5 sm:py-3 text-xs sm:text-sm font-medium text-white shadow-sm whitespace-nowrap touch-target">
-            All
-          </button>
-
-          <button className="rounded-xl border border-slate-200 bg-white px-4 sm:px-6 py-2.5 sm:py-3 text-xs sm:text-sm font-medium text-slate-600 whitespace-nowrap touch-target">
-            Active
-          </button>
-
-          <button className="rounded-xl border border-slate-200 bg-white px-4 sm:px-6 py-2.5 sm:py-3 text-xs sm:text-sm font-medium text-slate-600 whitespace-nowrap touch-target">
-            Inactive
-          </button>
-        </div>
->>>>>>> 2107c906a96fcc3fc5aca5fbfe6725fde99a25c0
       </div>
 
       {/* Desktop Table View */}
@@ -517,7 +475,6 @@ export default function EmployeeDashboard() {
           <div className="w-full max-w-2xl rounded-3xl md:rounded-3xl bg-white p-6 shadow-2xl max-h-[90vh] overflow-y-auto">
             <div className="mb-6 flex items-center justify-between">
               <div>
-<<<<<<< HEAD
                 <h2 className="text-xl font-semibold text-slate-900">
                   {editingId !== null ? "Edit Employee" : "Add New Employee"}
                 </h2>
@@ -526,10 +483,6 @@ export default function EmployeeDashboard() {
                     ? "Update the selected employee details."
                     : "Fill in the details for a new employee."}
                 </p>
-=======
-                <h2 className="text-lg sm:text-xl font-semibold text-slate-900">Edit Employee</h2>
-                <p className="text-xs sm:text-sm text-slate-500">Update the selected employee details.</p>
->>>>>>> 2107c906a96fcc3fc5aca5fbfe6725fde99a25c0
               </div>
               <button
                 type="button"

@@ -3,35 +3,8 @@ import { auth, db } from '../../firebase'
 import { doc, getDoc, setDoc } from 'firebase/firestore'
 
 export default function Transaction() {
-<<<<<<< HEAD
   const [transactions, setTransactions] = useState([])
   const [loadingDB, setLoadingDB] = useState(true)
-=======
-  const [transactions, setTransactions] = useState(() => {
-    const user = auth.currentUser;
-    const key = user ? `transactions_${user.uid}` : 'transactions_default';
-    const saved = localStorage.getItem(key);
-    if (saved) {
-      try {
-        return JSON.parse(saved);
-      } catch (e) {
-        console.error(e);
-      }
-    }
-    return [
-      
-    ];
-  })
-
-  useEffect(() => {
-    const user = auth.currentUser;
-    if (user) {
-      localStorage.setItem(`transactions_${user.uid}`, JSON.stringify(transactions));
-    }
-  }, [transactions]);
-
-  
->>>>>>> 2107c906a96fcc3fc5aca5fbfe6725fde99a25c0
   const [showForm, setShowForm] = useState(false)
   const [editId, setEditId] = useState(null)
   const [form, setForm] = useState({ date: '', description: '', account: '', type: 'debit', amount: '', status: 'cleared' })
