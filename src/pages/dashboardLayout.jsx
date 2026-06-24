@@ -1,6 +1,8 @@
+import { useState, useEffect } from 'react'
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
-import { auth } from '../firebase'
+import { auth, db } from '../firebase'
 import { signOut } from 'firebase/auth'
+import { doc, getDoc } from 'firebase/firestore'
 
 // ── NAV ──
 const navItems = [
@@ -21,7 +23,26 @@ const greetingHour = () => {
 export default function DashboardLayout() {
   const navigate = useNavigate();
   const user = auth.currentUser;
-  const companyName = user ? localStorage.getItem(`company_${user.uid}`) || 'Books-Flow Partner' : 'Books-Flow Partner';
+  const [companyName, setCompanyName] = useState(() => {
+    return user ? localStorage.getItem(`company_${user.uid}`) || 'Books-Flow Partner' : 'Books-Flow Partner';
+  });
+
+  useEffect(() => {
+    async function loadCompany() {
+      if (!user) return;
+      try {
+        const docRef = doc(db, "users", user.uid);
+        const docSnap = await getDoc(docRef);
+        if (docSnap.exists() && docSnap.data().companyName) {
+          setCompanyName(docSnap.data().companyName);
+          localStorage.setItem(`company_${user.uid}`, docSnap.data().companyName);
+        }
+      } catch (err) {
+        console.error("Error loading company name in layout: ", err);
+      }
+    }
+    loadCompany();
+  }, [user]);
 
   const handleSignOut = () => {
     signOut(auth).then(() => {

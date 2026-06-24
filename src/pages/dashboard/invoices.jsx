@@ -1,33 +1,10 @@
 import { useState, useEffect } from 'react'
-import { auth } from '../../firebase'
+import { auth, db } from '../../firebase'
+import { doc, getDoc, setDoc } from 'firebase/firestore'
 
 export default function Invoices() {
-  const [invoices, setInvoices] = useState(() => {
-    const user = auth.currentUser;
-    const key = user ? `invoices_${user.uid}` : 'invoices_default';
-    const saved = localStorage.getItem(key);
-    if (saved) {
-      try {
-        return JSON.parse(saved);
-      } catch (e) {
-        console.error(e);
-      }
-    }
-    return [
-      { id: 1, date: 'Jun 14', invoiceNo: 'INV-1001', customer: 'Nnamdi Ltd', description: 'Website redesign', due: 'Jul 14', amount: 8420.0, status: 'paid' },
-      { id: 2, date: 'Jun 01', invoiceNo: 'INV-0999', customer: 'Olivia Co', description: 'Monthly retainer', due: 'Jul 01', amount: 1203.45, status: 'unpaid' },
-      { id: 3, date: 'May 20', invoiceNo: 'INV-0988', customer: 'Acme Corp', description: 'Consulting', due: 'Jun 20', amount: 3500.0, status: 'overdue' },
-    ];
-  })
-
-  useEffect(() => {
-    const user = auth.currentUser;
-    if (user) {
-      localStorage.setItem(`invoices_${user.uid}`, JSON.stringify(invoices));
-    }
-  }, [invoices]);
-
-
+  const [invoices, setInvoices] = useState([])
+  const [loadingDB, setLoadingDB] = useState(true)
   const [showForm, setShowForm] = useState(false)
   const [editId, setEditId] = useState(null)
   const [form, setForm] = useState({ date: '', invoiceNo: '', customer: '', description: '', due: '', amount: '', status: 'unpaid' })
@@ -35,12 +12,67 @@ export default function Invoices() {
   const [filter, setFilter] = useState('All')
   const [loading, setLoading] = useState(false)
 
+  // 1. Fetch from Firestore on mount
+  useEffect(() => {
+    async function loadInvoices() {
+      const user = auth.currentUser;
+      if (!user) {
+        setLoadingDB(false);
+        return;
+      }
+      try {
+        const docRef = doc(db, "users", user.uid);
+        const docSnap = await getDoc(docRef);
+        
+        if (docSnap.exists() && docSnap.data().invoices) {
+          setInvoices(docSnap.data().invoices);
+          localStorage.setItem(`invoices_${user.uid}`, JSON.stringify(docSnap.data().invoices));
+        } else {
+          // If Firestore is empty, load from localStorage if it exists, otherwise use defaults
+          const saved = localStorage.getItem(`invoices_${user.uid}`);
+          if (saved) {
+            try {
+              const parsed = JSON.parse(saved);
+              setInvoices(parsed);
+              // Migrate localStorage to Firestore
+              await setDoc(docRef, { invoices: parsed }, { merge: true });
+            } catch (e) {
+              console.error("Error parsing local invoices: ", e);
+            }
+          } else {
+            const defaults = [
+              { id: 1, date: 'Jun 14', invoiceNo: 'INV-1001', customer: 'Nnamdi Ltd', description: 'Website redesign', due: 'Jul 14', amount: 8420.0, status: 'paid' },
+              { id: 2, date: 'Jun 01', invoiceNo: 'INV-0999', customer: 'Olivia Co', description: 'Monthly retainer', due: 'Jul 01', amount: 1203.45, status: 'unpaid' },
+              { id: 3, date: 'May 20', invoiceNo: 'INV-0988', customer: 'Acme Corp', description: 'Consulting', due: 'Jun 20', amount: 3500.0, status: 'overdue' },
+            ];
+            setInvoices(defaults);
+            await setDoc(docRef, { invoices: defaults }, { merge: true });
+          }
+        }
+      } catch (err) {
+        console.error("Error loading invoices: ", err);
+        // Fallback to localStorage on error
+        const saved = localStorage.getItem(`invoices_${user.uid}`);
+        if (saved) {
+          try {
+            setInvoices(JSON.parse(saved));
+          } catch (e) {
+            console.error(e);
+          }
+        }
+      } finally {
+        setLoadingDB(false);
+      }
+    }
+    loadInvoices();
+  }, []);
+
   function handleChange(e) {
     const { name, value } = e.target
     setForm(prev => ({ ...prev, [name]: value }))
   }
 
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault()
     if (!form.date || !form.invoiceNo || !form.customer || !form.amount) {
       alert('Please fill in all fields')
@@ -48,7 +80,13 @@ export default function Invoices() {
     }
 
     setLoading(true)
-    setTimeout(() => {
+    const user = auth.currentUser;
+    if (!user) {
+      setLoading(false);
+      return;
+    }
+
+    try {
       const updated = {
         id: editId || Date.now(),
         date: form.date,
@@ -59,12 +97,28 @@ export default function Invoices() {
         amount: parseFloat(form.amount),
         status: form.status,
       }
-      setInvoices(prev => (editId ? prev.map(i => (i.id === editId ? updated : i)) : [updated, ...prev]))
+
+      const updatedInvoices = editId
+        ? invoices.map(i => (i.id === editId ? updated : i))
+        : [updated, ...invoices];
+
+      // Save to Firestore
+      const docRef = doc(db, "users", user.uid);
+      await setDoc(docRef, { invoices: updatedInvoices }, { merge: true });
+
+      // Save to local storage for backward compatibility
+      localStorage.setItem(`invoices_${user.uid}`, JSON.stringify(updatedInvoices));
+
+      setInvoices(updatedInvoices);
       setForm({ date: '', invoiceNo: '', customer: '', description: '', due: '', amount: '', status: 'unpaid' })
       setEditId(null)
       setShowForm(false)
+    } catch (err) {
+      console.error("Error saving invoice: ", err);
+      alert("Failed to save invoice. Please try again.");
+    } finally {
       setLoading(false)
-    }, 500)
+    }
   }
 
   function handleEdit(inv) {
@@ -73,14 +127,44 @@ export default function Invoices() {
     setShowForm(true)
   }
 
-  function handleDelete(id) {
-    setInvoices(prev => prev.filter(i => i.id !== id))
+  async function handleDelete(id) {
+    const user = auth.currentUser;
+    if (!user) return;
+
+    if (!window.confirm("Are you sure you want to delete this invoice?")) return;
+
+    try {
+      const updatedInvoices = invoices.filter(i => i.id !== id);
+
+      // Save to Firestore
+      const docRef = doc(db, "users", user.uid);
+      await setDoc(docRef, { invoices: updatedInvoices }, { merge: true });
+
+      // Save to local storage
+      localStorage.setItem(`invoices_${user.uid}`, JSON.stringify(updatedInvoices));
+
+      setInvoices(updatedInvoices);
+    } catch (err) {
+      console.error("Error deleting invoice: ", err);
+      alert("Failed to delete invoice.");
+    }
   }
 
   function handleCancelEdit() {
     setForm({ date: '', invoiceNo: '', customer: '', description: '', due: '', amount: '', status: 'unpaid' })
     setEditId(null)
     setShowForm(false)
+  }
+
+  if (loadingDB) {
+    return (
+      <div className="min-h-[300px] flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-10 h-10 border-4 border-teal-400 border-t-transparent rounded-full animate-spin mx-auto mb-3"></div>
+          <p className="text-stone-500 text-sm font-semibold">Loading invoices...</p>
+        </div>
+      </div>
+    )
   }
 
   const filtered = invoices.filter(inv => {

@@ -1,36 +1,10 @@
 import { useState, useEffect } from 'react'
-import { auth } from '../../firebase'
+import { auth, db } from '../../firebase'
+import { doc, getDoc, setDoc } from 'firebase/firestore'
 
 export default function Transaction() {
-  const [transactions, setTransactions] = useState(() => {
-    const user = auth.currentUser;
-    const key = user ? `transactions_${user.uid}` : 'transactions_default';
-    const saved = localStorage.getItem(key);
-    if (saved) {
-      try {
-        return JSON.parse(saved);
-      } catch (e) {
-        console.error(e);
-      }
-    }
-    return [
-      { id: 1, date: 'Jun 14', description: 'Stripe payout — May', account: 'Revenue', type: 'credit', amount: 8420.00, status: 'cleared' },
-      { id: 2, date: 'Jun 13', description: 'AWS infrastructure', account: 'Expenses', type: 'debit', amount: 1203.45, status: 'cleared' },
-      { id: 3, date: 'Jun 12', description: 'Office rent — June', account: 'Expenses', type: 'debit', amount: 3500.00, status: 'cleared' },
-      { id: 4, date: 'Jun 11', description: 'Client: Nnamdi Ltd', account: 'Revenue', type: 'credit', amount: 5000.00, status: 'pending' },
-      { id: 5, date: 'Jun 10', description: 'Payroll — 8 staff', account: 'Expenses', type: 'debit', amount: 12400.00, status: 'cleared' },
-      { id: 6, date: 'Jun 09', description: 'Google Ads', account: 'Marketing', type: 'debit', amount: 620.00, status: 'cleared' },
-    ];
-  })
-
-  useEffect(() => {
-    const user = auth.currentUser;
-    if (user) {
-      localStorage.setItem(`transactions_${user.uid}`, JSON.stringify(transactions));
-    }
-  }, [transactions]);
-
-  
+  const [transactions, setTransactions] = useState([])
+  const [loadingDB, setLoadingDB] = useState(true)
   const [showForm, setShowForm] = useState(false)
   const [editId, setEditId] = useState(null)
   const [form, setForm] = useState({ date: '', description: '', account: '', type: 'debit', amount: '', status: 'cleared' })
@@ -38,12 +12,70 @@ export default function Transaction() {
   const [filter, setFilter] = useState('All')
   const [loading, setLoading] = useState(false)
 
+  // 1. Fetch from Firestore on mount
+  useEffect(() => {
+    async function loadTransactions() {
+      const user = auth.currentUser;
+      if (!user) {
+        setLoadingDB(false);
+        return;
+      }
+      try {
+        const docRef = doc(db, "users", user.uid);
+        const docSnap = await getDoc(docRef);
+        
+        if (docSnap.exists() && docSnap.data().transactions) {
+          setTransactions(docSnap.data().transactions);
+          localStorage.setItem(`transactions_${user.uid}`, JSON.stringify(docSnap.data().transactions));
+        } else {
+          // If Firestore is empty, load from localStorage if it exists, otherwise use defaults
+          const saved = localStorage.getItem(`transactions_${user.uid}`);
+          if (saved) {
+            try {
+              const parsed = JSON.parse(saved);
+              setTransactions(parsed);
+              // Migrate localStorage to Firestore
+              await setDoc(docRef, { transactions: parsed }, { merge: true });
+            } catch (e) {
+              console.error("Error parsing local transactions: ", e);
+            }
+          } else {
+            const defaults = [
+              { id: 1, date: 'Jun 14', description: 'Stripe payout — May', account: 'Revenue', type: 'credit', amount: 8420.00, status: 'cleared' },
+              { id: 2, date: 'Jun 13', description: 'AWS infrastructure', account: 'Expenses', type: 'debit', amount: 1203.45, status: 'cleared' },
+              { id: 3, date: 'Jun 12', description: 'Office rent — June', account: 'Expenses', type: 'debit', amount: 3500.00, status: 'cleared' },
+              { id: 4, date: 'Jun 11', description: 'Client: Nnamdi Ltd', account: 'Revenue', type: 'credit', amount: 5000.00, status: 'pending' },
+              { id: 5, date: 'Jun 10', description: 'Payroll — 8 staff', account: 'Expenses', type: 'debit', amount: 12400.00, status: 'cleared' },
+              { id: 6, date: 'Jun 09', description: 'Google Ads', account: 'Marketing', type: 'debit', amount: 620.00, status: 'cleared' },
+            ];
+            setTransactions(defaults);
+            await setDoc(docRef, { transactions: defaults }, { merge: true });
+          }
+        }
+      } catch (err) {
+        console.error("Error loading transactions: ", err);
+        // Fallback to localStorage on error
+        const saved = localStorage.getItem(`transactions_${user.uid}`);
+        if (saved) {
+          try {
+            setTransactions(JSON.parse(saved));
+          } catch (e) {
+            console.error(e);
+          }
+        }
+      } finally {
+        setLoadingDB(false);
+      }
+    }
+    loadTransactions();
+  }, []);
+
   function handleChange(e) {
     const { name, value } = e.target
     setForm(prev => ({ ...prev, [name]: value }))
   }
 
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault()
     if (!form.date || !form.description || !form.account || !form.amount) {
       alert('Please fill in all fields')
@@ -51,7 +83,13 @@ export default function Transaction() {
     }
 
     setLoading(true)
-    setTimeout(() => {
+    const user = auth.currentUser;
+    if (!user) {
+      setLoading(false);
+      return;
+    }
+
+    try {
       const updatedTransaction = {
         id: editId || Date.now(),
         date: form.date,
@@ -61,17 +99,28 @@ export default function Transaction() {
         amount: parseFloat(form.amount),
         status: form.status
       }
-      setTransactions(prev => {
-        if (editId) {
-          return prev.map(tx => (tx.id === editId ? updatedTransaction : tx))
-        }
-        return [updatedTransaction, ...prev]
-      })
+
+      const updatedTransactions = editId
+        ? transactions.map(tx => (tx.id === editId ? updatedTransaction : tx))
+        : [updatedTransaction, ...transactions];
+
+      // Save to Firestore
+      const docRef = doc(db, "users", user.uid);
+      await setDoc(docRef, { transactions: updatedTransactions }, { merge: true });
+
+      // Save to local storage
+      localStorage.setItem(`transactions_${user.uid}`, JSON.stringify(updatedTransactions));
+
+      setTransactions(updatedTransactions);
       setForm({ date: '', description: '', account: '', type: 'debit', amount: '', status: 'cleared' })
       setEditId(null)
       setShowForm(false)
+    } catch (err) {
+      console.error("Error saving transaction: ", err);
+      alert("Failed to save transaction. Please try again.");
+    } finally {
       setLoading(false)
-    }, 500)
+    }
   }
 
   function handleEdit(tx) {
@@ -87,14 +136,44 @@ export default function Transaction() {
     setShowForm(true)
   }
 
-  function handleDelete(id) {
-    setTransactions(prev => prev.filter(tx => tx.id !== id))
+  async function handleDelete(id) {
+    const user = auth.currentUser;
+    if (!user) return;
+
+    if (!window.confirm("Are you sure you want to delete this transaction?")) return;
+
+    try {
+      const updatedTransactions = transactions.filter(tx => tx.id !== id);
+
+      // Save to Firestore
+      const docRef = doc(db, "users", user.uid);
+      await setDoc(docRef, { transactions: updatedTransactions }, { merge: true });
+
+      // Save to local storage
+      localStorage.setItem(`transactions_${user.uid}`, JSON.stringify(updatedTransactions));
+
+      setTransactions(updatedTransactions);
+    } catch (err) {
+      console.error("Error deleting transaction: ", err);
+      alert("Failed to delete transaction.");
+    }
   }
 
   function handleCancelEdit() {
     setForm({ date: '', description: '', account: '', type: 'debit', amount: '', status: 'cleared' })
     setEditId(null)
     setShowForm(false)
+  }
+
+  if (loadingDB) {
+    return (
+      <div className="min-h-[300px] flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-10 h-10 border-4 border-teal-400 border-t-transparent rounded-full animate-spin mx-auto mb-3"></div>
+          <p className="text-stone-500 text-sm font-semibold">Loading transactions...</p>
+        </div>
+      </div>
+    )
   }
 
   const filteredTransactions = transactions.filter(tx => {

@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { useNavigate } from 'react-router-dom'
 import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth'
-import { auth } from '../firebase'
+import { auth, db } from '../firebase'
+import { doc, setDoc } from 'firebase/firestore'
 
 export default function SignUp({ onSignUp }) {
   const [form, setForm] = useState({ name:"", company:"", email:"", pass:"", confirm:"" });
@@ -18,10 +19,18 @@ export default function SignUp({ onSignUp }) {
     if (form.pass.length < 6) { setErr("Password must be at least 6 characters."); return; }
     setLoading(true); setErr("");
     createUserWithEmailAndPassword(auth, form.email, form.pass)
-      .then((userCredential) => {
-        // Save company name to local storage so we can display it in dashboard/settings
-        localStorage.setItem(`company_${userCredential.user.uid}`, form.company);
-        return updateProfile(userCredential.user, {
+      .then(async (userCredential) => {
+        const user = userCredential.user;
+        // Save company name and settings to Firestore db
+        await setDoc(doc(db, "users", user.uid), {
+          companyName: form.company,
+          displayName: form.name
+        }, { merge: true });
+        
+        // Save to local storage for backward compatibility and fast access
+        localStorage.setItem(`company_${user.uid}`, form.company);
+
+        return updateProfile(user, {
           displayName: form.name
         });
       })

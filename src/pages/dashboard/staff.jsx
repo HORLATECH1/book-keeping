@@ -1,5 +1,7 @@
-import { useState } from "react";
-import { FiRefreshCw, FiChevronDown, FiX, FiSearch, FiEdit2, FiTrash2 } from "react-icons/fi";
+import { useState, useEffect } from "react";
+import { FiX, FiSearch, FiEdit2, FiTrash2 } from "react-icons/fi";
+import { auth, db } from "../../firebase";
+import { doc, getDoc, setDoc } from "firebase/firestore";
 
 const initialEmployees = [
   {
@@ -71,9 +73,11 @@ const initialEmployees = [
 ];
 
 export default function EmployeeDashboard() {
-  const [employees, setEmployees] = useState(initialEmployees);
+  const [employees, setEmployees] = useState([]);
+  const [loadingDB, setLoadingDB] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingId, setEditingId] = useState(null);
+  const [searchText, setSearchText] = useState("");
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -81,6 +85,79 @@ export default function EmployeeDashboard() {
     department: "",
     salary: "",
     joined: "",
+  });
+
+  const user = auth.currentUser;
+
+  // 1. Fetch from Firestore on mount
+  useEffect(() => {
+    async function loadEmployees() {
+      if (!user) {
+        setLoadingDB(false);
+        return;
+      }
+      try {
+        const docRef = doc(db, "users", user.uid);
+        const docSnap = await getDoc(docRef);
+        
+        if (docSnap.exists() && docSnap.data().employees) {
+          setEmployees(docSnap.data().employees);
+          localStorage.setItem(`employees_${user.uid}`, JSON.stringify(docSnap.data().employees));
+        } else {
+          // If Firestore is empty, load from localStorage if it exists, otherwise use defaults
+          const saved = localStorage.getItem(`employees_${user.uid}`);
+          if (saved) {
+            try {
+              const parsed = JSON.parse(saved);
+              setEmployees(parsed);
+              await setDoc(docRef, { employees: parsed }, { merge: true });
+            } catch (e) {
+              console.error("Error parsing local employees: ", e);
+            }
+          } else {
+            setEmployees(initialEmployees);
+            await setDoc(docRef, { employees: initialEmployees }, { merge: true });
+          }
+        }
+      } catch (err) {
+        console.error("Error loading employees: ", err);
+        const saved = localStorage.getItem(`employees_${user.uid}`);
+        if (saved) {
+          try {
+            setEmployees(JSON.parse(saved));
+          } catch (e) {
+            console.error(e);
+          }
+        }
+      } finally {
+        setLoadingDB(false);
+      }
+    }
+    loadEmployees();
+  }, [user]);
+
+  const openAddModal = () => {
+    setEditingId(null);
+    setFormData({
+      name: "",
+      email: "",
+      position: "",
+      department: "",
+      salary: "",
+      joined: "",
+    });
+    setIsModalOpen(true);
+  };
+
+  const filteredEmployees = employees.filter((employee) => {
+    const query = searchText.trim().toLowerCase();
+    if (!query) return true;
+    return [
+      employee.name,
+      employee.email,
+      employee.position,
+      employee.department,
+    ].some((field) => field.toLowerCase().includes(query));
   });
 
   const openEditModal = (employee) => {
@@ -104,45 +181,101 @@ export default function EmployeeDashboard() {
     }));
   };
 
-  const handleSave = (e) => {
+  const handleSave = async (e) => {
     e.preventDefault();
-    setEmployees((prev) =>
-      prev.map((employee) =>
-        employee.id === editingId ? { ...employee, ...formData } : employee
-      )
-    );
-    setIsModalOpen(false);
-    setEditingId(null);
+    if (!user) return;
+
+    try {
+      let updatedEmployees = [];
+      if (editingId !== null) {
+        updatedEmployees = employees.map((employee) =>
+          employee.id === editingId ? { ...employee, ...formData } : employee
+        );
+      } else {
+        const nextId = Math.max(0, ...employees.map((employee) => employee.id)) + 1;
+        const newEmp = {
+          id: nextId,
+          initials: formData.name
+            .split(" ")
+            .map((part) => part[0])
+            .join("")
+            .slice(0, 2)
+            .toUpperCase(),
+          color: "bg-slate-500",
+          ...formData,
+        };
+        updatedEmployees = [...employees, newEmp];
+      }
+
+      // Write to Firestore db
+      const docRef = doc(db, "users", user.uid);
+      await setDoc(docRef, { employees: updatedEmployees }, { merge: true });
+
+      // Local storage sync
+      localStorage.setItem(`employees_${user.uid}`, JSON.stringify(updatedEmployees));
+
+      setEmployees(updatedEmployees);
+      setIsModalOpen(false);
+      setEditingId(null);
+    } catch (err) {
+      console.error("Error saving employee details: ", err);
+      alert("Failed to save details. Please try again.");
+    }
   };
 
-  const handleDelete = (id) => {
-    setEmployees((prev) => prev.filter((employee) => employee.id !== id));
+  const handleDelete = async (id) => {
+    if (!user) return;
+    if (!window.confirm("Are you sure you want to delete this staff record?")) return;
+
+    try {
+      const updatedEmployees = employees.filter((employee) => employee.id !== id);
+
+      // Write to Firestore db
+      const docRef = doc(db, "users", user.uid);
+      await setDoc(docRef, { employees: updatedEmployees }, { merge: true });
+
+      localStorage.setItem(`employees_${user.uid}`, JSON.stringify(updatedEmployees));
+      setEmployees(updatedEmployees);
+    } catch (err) {
+      console.error("Error deleting employee: ", err);
+      alert("Failed to delete record.");
+    }
   };
 
   const closeModal = () => {
     setIsModalOpen(false);
     setEditingId(null);
+    setFormData({
+      name: "",
+      email: "",
+      position: "",
+      department: "",
+      salary: "",
+      joined: "",
+    });
   };
+
+  if (loadingDB) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center font-sans">
+        <div className="text-center">
+          <div className="w-10 h-10 border-4 border-teal-500 border-t-transparent rounded-full animate-spin mx-auto mb-3"></div>
+          <p className="text-slate-500 text-sm font-semibold">Loading employee list...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-slate-50 p-6 font-sans">
       {/* Top Actions */}
-      <div className="mb-6 flex justify-end gap-3">
-        <button className="flex h-11 w-11 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-500 transition hover:bg-slate-50">
-          <FiRefreshCw size={18} />
-        </button>
-
-        <button className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-600">
-          Copy
-          <FiChevronDown size={16} />
-        </button>
-
-        <button className="rounded-xl bg-slate-900 px-5 py-2.5 text-sm font-semibold text-white shadow-sm">
-          Publish
-        </button>
-
-        <button className="flex h-11 w-11 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-500 transition hover:bg-slate-50">
-          <FiX size={18} />
+      <div className="mb-6 flex justify-end">
+        <button
+          type="button"
+          onClick={openAddModal}
+          className="rounded-xl bg-teal-500 px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-teal-600"
+        >
+          Add New Details
         </button>
       </div>
 
@@ -153,23 +286,11 @@ export default function EmployeeDashboard() {
 
           <input
             type="text"
-            placeholder="Search by name; role or department..."
+            value={searchText}
+            onChange={(e) => setSearchText(e.target.value)}
+            placeholder="Search by name, email, position, or department..."
             className="h-14 w-full rounded-2xl border border-slate-200 bg-white pl-12 pr-4 text-sm outline-none placeholder:text-slate-400 focus:border-teal-400"
           />
-        </div>
-
-        <div className="flex gap-3">
-          <button className="rounded-xl bg-teal-500 px-6 py-3 text-sm font-medium text-white shadow-sm">
-            All
-          </button>
-
-          <button className="rounded-xl border border-slate-200 bg-white px-6 py-3 text-sm font-medium text-slate-600">
-            Active
-          </button>
-
-          <button className="rounded-xl border border-slate-200 bg-white px-6 py-3 text-sm font-medium text-slate-600">
-            Inactive
-          </button>
         </div>
       </div>
 
@@ -198,7 +319,7 @@ export default function EmployeeDashboard() {
             </thead>
 
             <tbody>
-              {employees.map((employee) => (
+              {filteredEmployees.map((employee) => (
                 <tr
                   key={employee.id}
                   className="border-b border-slate-100 last:border-0"
@@ -278,8 +399,14 @@ export default function EmployeeDashboard() {
           <div className="w-full max-w-2xl rounded-3xl bg-white p-6 shadow-2xl">
             <div className="mb-6 flex items-center justify-between">
               <div>
-                <h2 className="text-xl font-semibold text-slate-900">Edit Employee</h2>
-                <p className="text-sm text-slate-500">Update the selected employee details.</p>
+                <h2 className="text-xl font-semibold text-slate-900">
+                  {editingId !== null ? "Edit Employee" : "Add New Employee"}
+                </h2>
+                <p className="text-sm text-slate-500">
+                  {editingId !== null
+                    ? "Update the selected employee details."
+                    : "Fill in the details for a new employee."}
+                </p>
               </div>
               <button
                 type="button"
