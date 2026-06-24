@@ -1,63 +1,135 @@
 import { useState, useEffect } from 'react'
-import { auth } from '../../firebase'
+import { auth, db } from '../../firebase'
 import { Link } from 'react-router-dom'
+import { doc, getDoc, setDoc } from 'firebase/firestore'
 
 export default function Overview() {
   const [transactions, setTransactions] = useState([])
   const [invoices, setInvoices] = useState([])
+  const [companyName, setCompanyName] = useState('Books-Flow Partner')
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    const user = auth.currentUser;
-    if (user) {
-      // Load transactions
-      const txKey = `transactions_${user.uid}`;
-      const savedTx = localStorage.getItem(txKey);
-      let txData = [];
+    async function loadData() {
+      const user = auth.currentUser;
+      if (!user) {
+        setLoading(false);
+        return;
+      }
+      try {
+        const docRef = doc(db, "users", user.uid);
+        const docSnap = await getDoc(docRef);
+        
+        let txData = [];
+        let invData = [];
+        let name = 'Books-Flow Partner';
+
+        if (docSnap.exists()) {
+          const data = docSnap.data();
+          
+          // Transactions
+          if (data.transactions) {
+            txData = data.transactions;
+            localStorage.setItem(`transactions_${user.uid}`, JSON.stringify(txData));
+          } else {
+            txData = loadTxFallback(user.uid);
+          }
+
+          // Invoices
+          if (data.invoices) {
+            invData = data.invoices;
+            localStorage.setItem(`invoices_${user.uid}`, JSON.stringify(invData));
+          } else {
+            invData = loadInvFallback(user.uid);
+          }
+
+          // Company name
+          if (data.companyName) {
+            name = data.companyName;
+            localStorage.setItem(`company_${user.uid}`, name);
+          } else {
+            name = localStorage.getItem(`company_${user.uid}`) || 'Books-Flow Partner';
+          }
+        } else {
+          // Document does not exist yet. Initialize it with fallback data
+          txData = loadTxFallback(user.uid);
+          invData = loadInvFallback(user.uid);
+          name = localStorage.getItem(`company_${user.uid}`) || 'Books-Flow Partner';
+          
+          await setDoc(docRef, {
+            transactions: txData,
+            invoices: invData,
+            companyName: name
+          }, { merge: true });
+        }
+
+        setTransactions(txData);
+        setInvoices(invData);
+        setCompanyName(name);
+      } catch (err) {
+        console.error("Error loading overview data from Firestore: ", err);
+        // Fallback to local storage
+        const savedTx = localStorage.getItem(`transactions_${user.uid}`);
+        if (savedTx) {
+          try {
+            setTransactions(JSON.parse(savedTx));
+          } catch (e) {
+            console.error(e);
+          }
+        }
+        const savedInv = localStorage.getItem(`invoices_${user.uid}`);
+        if (savedInv) {
+          try {
+            setInvoices(JSON.parse(savedInv));
+          } catch (e) {
+            console.error(e);
+          }
+        }
+        setCompanyName(localStorage.getItem(`company_${user.uid}`) || 'Books-Flow Partner');
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    function loadTxFallback(uid) {
+      const savedTx = localStorage.getItem(`transactions_${uid}`);
       if (savedTx) {
         try {
-          txData = JSON.parse(savedTx);
+          return JSON.parse(savedTx);
         } catch (e) {
           console.error(e);
         }
-      } else {
-        txData = [
-          { id: 1, date: 'Jun 14', description: 'Stripe payout — May', account: 'Revenue', type: 'credit', amount: 8420.00, status: 'cleared' },
-          { id: 2, date: 'Jun 13', description: 'AWS infrastructure', account: 'Expenses', type: 'debit', amount: 1203.45, status: 'cleared' },
-          { id: 3, date: 'Jun 12', description: 'Office rent — June', account: 'Expenses', type: 'debit', amount: 3500.00, status: 'cleared' },
-          { id: 4, date: 'Jun 11', description: 'Client: Nnamdi Ltd', account: 'Revenue', type: 'credit', amount: 5000.00, status: 'pending' },
-          { id: 5, date: 'Jun 10', description: 'Payroll — 8 staff', account: 'Expenses', type: 'debit', amount: 12400.00, status: 'cleared' },
-          { id: 6, date: 'Jun 09', description: 'Google Ads', account: 'Marketing', type: 'debit', amount: 620.00, status: 'cleared' },
-        ];
-        localStorage.setItem(txKey, JSON.stringify(txData));
       }
-      setTransactions(txData);
+      return [
+        { id: 1, date: 'Jun 14', description: 'Stripe payout — May', account: 'Revenue', type: 'credit', amount: 8420.00, status: 'cleared' },
+        { id: 2, date: 'Jun 13', description: 'AWS infrastructure', account: 'Expenses', type: 'debit', amount: 1203.45, status: 'cleared' },
+        { id: 3, date: 'Jun 12', description: 'Office rent — June', account: 'Expenses', type: 'debit', amount: 3500.00, status: 'cleared' },
+        { id: 4, date: 'Jun 11', description: 'Client: Nnamdi Ltd', account: 'Revenue', type: 'credit', amount: 5000.00, status: 'pending' },
+        { id: 5, date: 'Jun 10', description: 'Payroll — 8 staff', account: 'Expenses', type: 'debit', amount: 12400.00, status: 'cleared' },
+        { id: 6, date: 'Jun 09', description: 'Google Ads', account: 'Marketing', type: 'debit', amount: 620.00, status: 'cleared' },
+      ];
+    }
 
-      // Load invoices
-      const invKey = `invoices_${user.uid}`;
-      const savedInv = localStorage.getItem(invKey);
-      let invData = [];
+    function loadInvFallback(uid) {
+      const savedInv = localStorage.getItem(`invoices_${uid}`);
       if (savedInv) {
         try {
-          invData = JSON.parse(savedInv);
+          return JSON.parse(savedInv);
         } catch (e) {
           console.error(e);
         }
-      } else {
-        invData = [
-          { id: 1, date: 'Jun 14', invoiceNo: 'INV-1001', customer: 'Nnamdi Ltd', description: 'Website redesign', due: 'Jul 14', amount: 8420.0, status: 'paid' },
-          { id: 2, date: 'Jun 01', invoiceNo: 'INV-0999', customer: 'Olivia Co', description: 'Monthly retainer', due: 'Jul 01', amount: 1203.45, status: 'unpaid' },
-          { id: 3, date: 'May 20', invoiceNo: 'INV-0988', customer: 'Acme Corp', description: 'Consulting', due: 'Jun 20', amount: 3500.0, status: 'overdue' },
-        ];
-        localStorage.setItem(invKey, JSON.stringify(invData));
       }
-      setInvoices(invData);
+      return [
+        { id: 1, date: 'Jun 14', invoiceNo: 'INV-1001', customer: 'Nnamdi Ltd', description: 'Website redesign', due: 'Jul 14', amount: 8420.0, status: 'paid' },
+        { id: 2, date: 'Jun 01', invoiceNo: 'INV-0999', customer: 'Olivia Co', description: 'Monthly retainer', due: 'Jul 01', amount: 1203.45, status: 'unpaid' },
+        { id: 3, date: 'May 20', invoiceNo: 'INV-0988', customer: 'Acme Corp', description: 'Consulting', due: 'Jun 20', amount: 3500.0, status: 'overdue' },
+      ];
     }
-    setLoading(false);
+
+    loadData();
   }, []);
 
   const user = auth.currentUser;
-  const companyName = user ? localStorage.getItem(`company_${user.uid}`) || 'Books-Flow Partner' : 'Books-Flow Partner';
 
   // Compute metrics
   const totalAmountSold = invoices.reduce((sum, inv) => sum + inv.amount, 0);

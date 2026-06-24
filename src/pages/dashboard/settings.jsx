@@ -1,6 +1,7 @@
-import { useState } from "react";
-import { auth } from "../../firebase";
+import { useState, useEffect } from "react";
+import { auth, db } from "../../firebase";
 import { updateProfile } from "firebase/auth";
+import { doc, getDoc, setDoc } from "firebase/firestore";
 
 const Toggle = ({ value, onChange }) => (
   <button
@@ -22,7 +23,7 @@ const Toggle = ({ value, onChange }) => (
 export default function Settings() {
   const user = auth.currentUser;
   const [displayName, setDisplayName] = useState(user?.displayName || "");
-  const [company, setCompany] = useState(user ? localStorage.getItem(`company_${user.uid}`) || "" : "");
+  const [company, setCompany] = useState("");
   const [loading, setLoading] = useState(false);
   const [msg, setMsg] = useState("");
   const [err, setErr] = useState("");
@@ -31,6 +32,28 @@ export default function Settings() {
   const [emails, setEmails] = useState(false);
   const [digest, setDigest] = useState(true);
 
+  // Load profile settings from Firestore
+  useEffect(() => {
+    async function loadProfile() {
+      if (!user) return;
+      try {
+        const userDocRef = doc(db, "users", user.uid);
+        const docSnap = await getDoc(userDocRef);
+        if (docSnap.exists() && docSnap.data().companyName) {
+          setCompany(docSnap.data().companyName);
+          localStorage.setItem(`company_${user.uid}`, docSnap.data().companyName);
+        } else {
+          // Fallback to localStorage
+          setCompany(localStorage.getItem(`company_${user.uid}`) || "");
+        }
+      } catch (e) {
+        console.error("Error loading user company info: ", e);
+        setCompany(localStorage.getItem(`company_${user.uid}`) || "");
+      }
+    }
+    loadProfile();
+  }, [user]);
+
   const handleSaveChanges = async () => {
     if (!user) return;
     setLoading(true);
@@ -38,10 +61,18 @@ export default function Settings() {
     setErr("");
     try {
       await updateProfile(user, { displayName });
-      if (company) {
-        localStorage.setItem(`company_${user.uid}`, company);
-      }
-      setMsg("Profile updated successfully! Refresh to see dashboard update.");
+      
+      // Save company settings to Firestore
+      const userDocRef = doc(db, "users", user.uid);
+      await setDoc(userDocRef, {
+        companyName: company,
+        displayName: displayName
+      }, { merge: true });
+
+      // Keep localStorage in sync for fast static reads
+      localStorage.setItem(`company_${user.uid}`, company);
+
+      setMsg("Profile updated successfully!");
     } catch (e) {
       setErr(e.message || "Failed to update profile.");
     } finally {

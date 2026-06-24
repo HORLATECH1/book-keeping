@@ -1,7 +1,12 @@
+<<<<<<< HEAD
+import { useState, useEffect } from 'react'
+=======
 import { useState } from 'react'
+>>>>>>> 2107c906a96fcc3fc5aca5fbfe6725fde99a25c0
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
-import { auth } from '../firebase'
+import { auth, db } from '../firebase'
 import { signOut } from 'firebase/auth'
+import { doc, getDoc } from 'firebase/firestore'
 
 // ── NAV ──
 const navItems = [
@@ -22,8 +27,31 @@ const greetingHour = () => {
 export default function DashboardLayout() {
   const navigate = useNavigate();
   const user = auth.currentUser;
+<<<<<<< HEAD
+  const [companyName, setCompanyName] = useState(() => {
+    return user ? localStorage.getItem(`company_${user.uid}`) || 'Books-Flow Partner' : 'Books-Flow Partner';
+  });
+
+  useEffect(() => {
+    async function loadCompany() {
+      if (!user) return;
+      try {
+        const docRef = doc(db, "users", user.uid);
+        const docSnap = await getDoc(docRef);
+        if (docSnap.exists() && docSnap.data().companyName) {
+          setCompanyName(docSnap.data().companyName);
+          localStorage.setItem(`company_${user.uid}`, docSnap.data().companyName);
+        }
+      } catch (err) {
+        console.error("Error loading company name in layout: ", err);
+      }
+    }
+    loadCompany();
+  }, [user]);
+=======
   const companyName = user ? localStorage.getItem(`company_${user.uid}`) || 'Books-Flow Partner' : 'Books-Flow Partner';
   const [sidebarOpen, setSidebarOpen] = useState(false);
+>>>>>>> 2107c906a96fcc3fc5aca5fbfe6725fde99a25c0
 
   const handleSignOut = () => {
     signOut(auth).then(() => {
