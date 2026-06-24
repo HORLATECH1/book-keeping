@@ -3,7 +3,6 @@ import { auth, db } from '../../firebase'
 import { doc, getDoc, setDoc } from 'firebase/firestore'
 
 export default function Invoices() {
-<<<<<<< HEAD
   const [invoices, setInvoices] = useState(() => {
     const user = auth.currentUser;
     const key = user ? `invoices_${user.uid}` : 'invoices_default';
@@ -30,10 +29,6 @@ export default function Invoices() {
   }, [invoices]);
 
 
-=======
-  const [invoices, setInvoices] = useState([])
-  const [loadingDB, setLoadingDB] = useState(true)
->>>>>>> c756dc67403a9987288b65c1b75d7717c6a16424
   const [showForm, setShowForm] = useState(false)
   const [editId, setEditId] = useState(null)
   const [form, setForm] = useState({ date: '', invoiceNo: '', customer: '', description: '', due: '', amount: '', status: 'unpaid' })
