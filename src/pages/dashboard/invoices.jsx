@@ -3,8 +3,32 @@ import { auth, db } from '../../firebase'
 import { doc, getDoc, setDoc } from 'firebase/firestore'
 
 export default function Invoices() {
-  const [invoices, setInvoices] = useState([])
-  const [loadingDB, setLoadingDB] = useState(true)
+  const [invoices, setInvoices] = useState(() => {
+    const user = auth.currentUser;
+    const key = user ? `invoices_${user.uid}` : 'invoices_default';
+    const saved = localStorage.getItem(key);
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch (e) {
+        console.error(e);
+      }
+    }
+    return [
+      {
+        
+      }
+    ];
+  })
+
+  useEffect(() => {
+    const user = auth.currentUser;
+    if (user) {
+      localStorage.setItem(`invoices_${user.uid}`, JSON.stringify(invoices));
+    }
+  }, [invoices]);
+
+
   const [showForm, setShowForm] = useState(false)
   const [editId, setEditId] = useState(null)
   const [form, setForm] = useState({ date: '', invoiceNo: '', customer: '', description: '', due: '', amount: '', status: 'unpaid' })

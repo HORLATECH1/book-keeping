@@ -23,11 +23,10 @@ const greetingHour = () => {
 export default function DashboardLayout() {
   const navigate = useNavigate();
   const user = auth.currentUser;
-  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [companyName, setCompanyName] = useState(() => {
     return user ? localStorage.getItem(`company_${user.uid}`) || 'Books-Flow Partner' : 'Books-Flow Partner';
   });
-
+  const [ sidebarOpen, setSidebarOpen]=useState("");
   useEffect(() => {
     async function loadCompany() {
       if (!user) return;
