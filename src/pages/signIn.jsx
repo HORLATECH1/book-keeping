@@ -47,7 +47,7 @@ export default function SignIn({ onSignIn }) {
       <div className="fixed -top-20 -right-20 w-80 h-80 rounded-full bg-teal-400 opacity-10 pointer-events-none" />
       <div className="fixed -bottom-16 -left-16 w-64 h-64 rounded-full bg-teal-400 opacity-10 pointer-events-none" />
 
-      <div className="w-[420px] bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl px-10 py-11 shadow-2xl">
+      <div className="w-full max-w-[420px] mx-4 bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl px-6 py-8 sm:px-10 sm:py-11 shadow-2xl">
         {/* Logo */}
         <div className="flex items-center gap-3 mb-8">
           <div className="w-10 h-10 rounded-xl bg-teal-400 flex items-center justify-center font-extrabold text-lg text-[#1A1A2E]">₦</div>

@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 import { useState, useEffect } from 'react'
+=======
+import { useState } from 'react'
+>>>>>>> 2107c906a96fcc3fc5aca5fbfe6725fde99a25c0
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
 import { auth, db } from '../firebase'
 import { signOut } from 'firebase/auth'
@@ -23,6 +27,7 @@ const greetingHour = () => {
 export default function DashboardLayout() {
   const navigate = useNavigate();
   const user = auth.currentUser;
+<<<<<<< HEAD
   const [companyName, setCompanyName] = useState(() => {
     return user ? localStorage.getItem(`company_${user.uid}`) || 'Books-Flow Partner' : 'Books-Flow Partner';
   });
@@ -43,6 +48,10 @@ export default function DashboardLayout() {
     }
     loadCompany();
   }, [user]);
+=======
+  const companyName = user ? localStorage.getItem(`company_${user.uid}`) || 'Books-Flow Partner' : 'Books-Flow Partner';
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+>>>>>>> 2107c906a96fcc3fc5aca5fbfe6725fde99a25c0
 
   const handleSignOut = () => {
     signOut(auth).then(() => {
@@ -52,8 +61,29 @@ export default function DashboardLayout() {
 
   return (
     <div className="min-h-screen bg-stone-100 flex font-sans">
+      {/* Mobile Backdrop */}
+      {sidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 z-40 md:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
       {/* Sidebar */}
-      <div className="w-[220px] bg-[#1A1A2E] min-h-screen flex flex-col flex-shrink-0">
+      <div className={`
+        fixed inset-y-0 left-0 z-50 w-[220px] bg-[#1A1A2E] flex flex-col flex-shrink-0
+        transform transition-transform duration-300 ease-in-out
+        ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
+        md:relative md:translate-x-0 md:min-h-screen
+      `}>
+        {/* Close button for mobile */}
+        <button
+          onClick={() => setSidebarOpen(false)}
+          className="md:hidden absolute top-4 right-4 text-white/60 hover:text-white text-xl z-10"
+        >
+          ✕
+        </button>
+
         {/* Logo */}
         <div className="px-5 pt-6 pb-5 border-b border-white/10">
           <div className="flex items-center gap-3">
@@ -71,6 +101,7 @@ export default function DashboardLayout() {
               key={item.to}
               to={item.to}
               end={item.end}
+              onClick={() => setSidebarOpen(false)}
               className={({ isActive }) =>
                 `flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${isActive
                   ? 'bg-teal-500/20 text-teal-400 font-semibold shadow-sm'
@@ -108,10 +139,17 @@ export default function DashboardLayout() {
 
 
       {/* Main */}
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col min-w-0">
         {/* Top bar */}
-        <header className="bg-white border-b border-stone-200 px-8 py-4 flex items-center justify-between shadow-sm">
-          <div>
+        <header className="bg-white border-b border-stone-200 px-4 py-3 md:px-8 md:py-4 flex items-center justify-between shadow-sm">
+          {/* Hamburger menu - mobile only */}
+          <button
+            onClick={() => setSidebarOpen(true)}
+            className="md:hidden w-10 h-10 rounded-xl bg-stone-100 flex items-center justify-center text-stone-600 text-xl mr-3"
+          >
+            ☰
+          </button>
+          <div className="flex-1">
             <p className="text-stone-400 text-xs">{new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}</p>
             <h1 className="text-stone-800 font-bold text-lg leading-tight">{greetingHour()} 👋</h1>
           </div>
@@ -121,7 +159,7 @@ export default function DashboardLayout() {
         </header>
 
         {/* Page */}
-        <main className="flex-1 p-8 overflow-auto">
+        <main className="flex-1 p-4 md:p-8 overflow-auto">
           <Outlet />
         </main>
       </div>

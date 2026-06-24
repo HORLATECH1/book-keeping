@@ -177,7 +177,7 @@ export default function Invoices() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-stone-800">Invoices</h1>
+          <h1 className="text-2xl md:text-3xl font-bold text-stone-800">Invoices</h1>
           <p className="text-stone-500 mt-1">June 2026 · {invoices.length} entries</p>
         </div>
         <button
@@ -192,7 +192,7 @@ export default function Invoices() {
         <div className="bg-white rounded-xl shadow-sm p-6 border border-stone-200">
           <h2 className="text-lg font-bold text-stone-800 mb-4">Create / Edit Invoice</h2>
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div>
                 <label className="block text-sm font-semibold text-stone-700 mb-2">Date</label>
                 <input name="date" value={form.date} onChange={handleChange} placeholder="e.g., Jun 14" className="w-full px-4 py-2 rounded-lg border border-stone-200 text-sm outline-none focus:ring-2 focus:ring-teal-400" />
@@ -207,7 +207,7 @@ export default function Invoices() {
               </div>
             </div>
 
-            <div className="grid grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               <div>
                 <label className="block text-sm font-semibold text-stone-700 mb-2">Description</label>
                 <input name="description" value={form.description} onChange={handleChange} placeholder="e.g., Consulting" className="w-full px-4 py-2 rounded-lg border border-stone-200 text-sm outline-none focus:ring-2 focus:ring-teal-400" />
@@ -240,12 +240,12 @@ export default function Invoices() {
         </div>
       )}
 
-      <div className="flex items-center gap-4">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
         <div className="flex-1 relative">
           <span className="absolute left-3 top-3 text-stone-400">🔍</span>
           <input type="text" placeholder="Search invoices..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-stone-200 text-sm outline-none focus:ring-2 focus:ring-teal-400" />
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap">
           {['All', 'Paid', 'Unpaid', 'Overdue'].map(btn => (
             <button key={btn} onClick={() => setFilter(btn)} className={`px-4 py-2 rounded-lg font-medium transition-colors ${filter === btn ? 'bg-teal-400 text-white' : 'bg-stone-100 text-stone-700 hover:bg-stone-200'}`}>
               {btn}
@@ -254,8 +254,8 @@ export default function Invoices() {
         </div>
       </div>
 
-      <div className="bg-white rounded-xl shadow-sm border border-stone-200 overflow-hidden">
-        <table className="w-full">
+      <div className="bg-white rounded-xl shadow-sm border border-stone-200 overflow-hidden overflow-x-auto">
+        <table className="w-full min-w-[800px]">
           <thead>
             <tr className="border-b border-stone-200 bg-stone-50">
               <th className="px-6 py-3 text-left text-xs font-semibold text-stone-600 uppercase tracking-wider">Date</th>
