@@ -42,7 +42,8 @@ const PublicRoute = ({ children, user, loading }) => {
     );
   }
   if (user) {
-    return <Navigate to="/dashboard" replace />;
+    return <Navigate to="/da
+    \\\\\\\\\\\\shboard" replace />;
   }
   return children;
 };
