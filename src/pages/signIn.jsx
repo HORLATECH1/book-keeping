@@ -14,7 +14,9 @@ export default function SignIn({ onSignIn }) {
   const goToSignUp = () => navigate('/signUp');
 
   function handleSubmit() {
-    if (!email || !pass) { setErr("Please fill in all fields."); return; }
+    if (!email || !pass) { setErr("Please fill in all fields."); 
+      return; 
+    }
     setLoading(true); setErr("");
     signInWithEmailAndPassword(auth, email, pass)
       .then(() => {
@@ -33,16 +35,17 @@ export default function SignIn({ onSignIn }) {
           message = "Invalid email or password.";
         } else if (error.code === 'auth/invalid-email') {
           message = "Invalid email address format.";
-        } else if (error.code === 'auth/too-many-requests') {
-          message = "Too many attempts. Access temporarily disabled.";
-        }
+        } 
+        // else if (error.code === 'auth/too-many-requests') {
+        //   message = "Too many attempts. Access temporarily disabled.";
+        // }
         setErr(message);
       });
   }
 
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#1A1A2E] via-[#2D3561] to-[#1A1A2E] flex items-center justify-center font-sans">
+    <div className="min-h-screen bg-linear-to-br from-[#1A1A2E] via-[#2D3561] to-[#1A1A2E] flex items-center justify-center font-sans">
       {/* Blobs */}
       <div className="fixed -top-20 -right-20 w-80 h-80 rounded-full bg-teal-400 opacity-10 pointer-events-none" />
       <div className="fixed -bottom-16 -left-16 w-64 h-64 rounded-full bg-teal-400 opacity-10 pointer-events-none" />
@@ -68,7 +71,7 @@ export default function SignIn({ onSignIn }) {
           <label className="block text-xs font-semibold text-white/80 mb-1.5">Email address</label>
           <input
             type="email"
-            placeholder="you@company.com"
+            placeholder="input your email address"
             value={email}
             onChange={e => setEmail(e.target.value)}
             className="w-full px-4 py-3 rounded-xl bg-white/10 border border-white/25 text-white placeholder-white/40 text-sm outline-none font-sans"

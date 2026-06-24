@@ -91,7 +91,7 @@ export default function DashboardLayout() {
         {user && (
           <div className="px-4 py-4 border-t border-white/10 mt-auto">
             <div className="flex items-center gap-3 mb-3">
-              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-teal-400 to-emerald-500 flex items-center justify-center text-[#1A1A2E] text-xs font-bold shadow-sm">
+              <div className="w-8 h-8 rounded-full bg-linear-to-br from-teal-400 to-emerald-500 flex items-center justify-center text-[#1A1A2E] text-xs font-bold shadow-sm">
                 {user.displayName ? user.displayName.charAt(0).toUpperCase() : '👤'}
               </div>
               <div className="overflow-hidden flex-1">
