@@ -275,7 +275,7 @@ export default function EmployeeDashboard() {
           onClick={openAddModal}
           className="rounded-xl bg-teal-500 px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-teal-600"
         >
-          Add New Details
+          Add New Employee
         </button>
       </div>
 
