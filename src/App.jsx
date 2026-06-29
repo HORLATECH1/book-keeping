@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+﻿import { useEffect, useState } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { onAuthStateChanged } from 'firebase/auth'
 import { auth } from './firebase'
@@ -42,8 +42,7 @@ const PublicRoute = ({ children, user, loading }) => {
     );
   }
   if (user) {
-    return <Navigate to="/da
-    \\\\\\\\\\\\shboard" replace />;
+    return <Navigate to="/dashboard" replace />;
   }
   return children;
 };
@@ -99,3 +98,4 @@ const App = () => {
 }
 
 export default App
+
