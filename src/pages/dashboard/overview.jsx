@@ -196,7 +196,7 @@ export default function Overview() {
                 <h3 className="text-xs font-bold text-white/80 mt-2 truncate w-[160px]">{companyName}</h3>
               </div>
               <div className="flex items-center gap-2">
-                <span className="text-white/40 text-[10px] font-mono">NFC</span>
+                <span className="text-white/40 text-[10px] font-mono">****</span>
                 <svg className="w-5 h-5 text-white/60" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M5 17a8 8 0 0 1 0-10M9 19a12 12 0 0 1 0-14M13 21a16 16 0 0 1 0-18" strokeLinecap="round" />
                 </svg>
@@ -222,10 +222,10 @@ export default function Overview() {
             {/* Bottom row */}
             <div className="flex justify-between items-end z-10">
               <div>
-                <span className="text-[8px] text-white/30 tracking-wider uppercase font-semibold block">Account Identifier</span>
+                {/* <span className="text-[8px] text-white/30 tracking-wider uppercase font-semibold block">Account Identifier</span>
                 <span className="font-mono text-[11px] text-white/70 tracking-widest block">
                   •••• •••• •••• {user ? user.uid.substring(0, 4).toUpperCase() : '2026'}
-                </span>
+                </span> */}
               </div>
               <div className="flex items-center">
                 <div className="w-6 h-6 rounded-full bg-teal-400/80 z-10 shadow-sm"></div>
