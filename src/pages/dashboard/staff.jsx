@@ -3,74 +3,7 @@ import { FiX, FiSearch, FiEdit2, FiTrash2 } from "react-icons/fi";
 import { auth, db } from "../../firebase";
 import { doc, getDoc, setDoc } from "firebase/firestore";
 
-const initialEmployees = [
-  {
-    id: 1,
-    initials: "AO",
-    color: "bg-blue-500",
-    name: "Adaeze Obi",
-    email: "adaeze@acme.ng",
-    position: "CEO / Owner",
-    department: "Executive",
-    salary: "—",
-    joined: "Jan 2021",
-  },
-  {
-    id: 2,
-    initials: "EN",
-    color: "bg-orange-500",
-    name: "Emeka Nwosu",
-    email: "emeka@acme.ng",
-    position: "Senior Accountant",
-    department: "Finance",
-    salary: "₦450,000",
-    joined: "Mar 2022",
-  },
-  {
-    id: 3,
-    initials: "FB",
-    color: "bg-emerald-500",
-    name: "Fatima Bello",
-    email: "fatima@acme.ng",
-    position: "HR Manager",
-    department: "HR",
-    salary: "₦380,000",
-    joined: "Jul 2022",
-  },
-  {
-    id: 4,
-    initials: "CO",
-    color: "bg-violet-500",
-    name: "Chidi Okeke",
-    email: "chidi@acme.ng",
-    position: "Software Engineer",
-    department: "Technology",
-    salary: "₦520,000",
-    joined: "Nov 2022",
-  },
-  {
-    id: 5,
-    initials: "NE",
-    color: "bg-teal-500",
-    name: "Ngozi Eze",
-    email: "ngozi@acme.ng",
-    position: "Sales Executive",
-    department: "Sales",
-    salary: "₦310,000",
-    joined: "Feb 2023",
-  },
-  {
-    id: 6,
-    initials: "TA",
-    color: "bg-cyan-500",
-    name: "Tunde Adesanya",
-    email: "tunde@acme.ng",
-    position: "Operations Lead",
-    department: "Operations",
-    salary: "₦420,000",
-    joined: "May 2023",
-  },
-];
+const initialEmployees = [];
 
 export default function EmployeeDashboard() {
   const [employees, setEmployees] = useState([]);

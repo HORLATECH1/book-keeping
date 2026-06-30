@@ -51,7 +51,7 @@ export default function DashboardLayout() {
   };
 
   return (
-    <div className="min-h-screen bg-stone-100 flex font-sans">
+    <div className="min-h-screen bg-stone-100 font-sans">
       {/* Mobile Backdrop */}
       {sidebarOpen && (
         <div
@@ -62,10 +62,10 @@ export default function DashboardLayout() {
 
       {/* Sidebar */}
       <div className={`
-        fixed inset-y-0 left-0 z-50 w-[220px] bg-[#1A1A2E] flex flex-col flex-shrink-0
+        fixed inset-y-0 left-0 z-50 w-[220px] bg-[#1A1A2E] flex flex-col overflow-y-auto
         transform transition-transform duration-300 ease-in-out
         ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
-        md:relative md:translate-x-0 md:min-h-screen
+        md:translate-x-0
       `}>
         {/* Close button for mobile */}
         <button
@@ -78,7 +78,7 @@ export default function DashboardLayout() {
         {/* Logo */}
         <div className="px-5 pt-6 pb-5 border-b border-white/10">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-teal-400 flex items-center justify-center font-extrabold text-base text-[#1A1A2E]">₦</div>
+            <div className="w-8 h-8 rounded-lg text-3xl flex items-center justify-center font-extrabold  text-[#1A1A2E]">📚</div>
             <div>
               <p className="m-0 font-bold text-white text-sm">Books-Flow</p>
               <p className="m-0 text-[10px] text-white/40 truncate w-[120px]">{companyName}</p>
@@ -130,7 +130,7 @@ export default function DashboardLayout() {
 
 
       {/* Main */}
-      <div className="flex-1 flex flex-col min-w-0">
+      <div className="flex flex-col min-h-screen md:ml-[220px]">
         {/* Top bar */}
         <header className="bg-white border-b border-stone-200 px-4 py-3 md:px-8 md:py-4 flex items-center justify-between shadow-sm">
           {/* Hamburger menu - mobile only */}
@@ -150,7 +150,7 @@ export default function DashboardLayout() {
         </header>
 
         {/* Page */}
-        <main className="flex-1 p-4 md:p-8 overflow-auto">
+        <main className="flex-1 p-4 md:p-8">
           <Outlet />
         </main>
       </div>

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from 'react-router-dom'
-import { signInWithEmailAndPassword } from 'firebase/auth'
+import { signInWithEmailAndPassword, sendPasswordResetEmail } from 'firebase/auth'
 import { auth } from '../firebase'
 
 export default function SignIn({ onSignIn }) {
@@ -8,10 +8,28 @@ export default function SignIn({ onSignIn }) {
   const [pass, setPass]   = useState("");
   const [err, setErr]     = useState("");
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
   
 
   const goToSignUp = () => navigate('/signUp');
+
+  function handleResetPassword() {
+    if (!email) {
+      setErr("Please enter your email address to reset password.");
+      return;
+    }
+    setLoading(true); setErr("");
+    sendPasswordResetEmail(auth, email)
+      .then(() => {
+        setLoading(false);
+        alert("Password reset email sent. Please check your inbox.");
+      })
+      .catch((error) => {
+        setLoading(false);
+        setErr(error.message);
+      });
+  }
 
   function handleSubmit() {
     if (!email || !pass) { setErr("Please fill in all fields."); 
@@ -36,9 +54,6 @@ export default function SignIn({ onSignIn }) {
         } else if (error.code === 'auth/invalid-email') {
           message = "Invalid email address format.";
         } 
-        // else if (error.code === 'auth/too-many-requests') {
-        //   message = "Too many attempts. Access temporarily disabled.";
-        // }
         setErr(message);
       });
   }
@@ -77,18 +92,25 @@ export default function SignIn({ onSignIn }) {
             className="w-full px-4 py-3 rounded-xl bg-white/10 border border-white/25 text-white placeholder-white/40 text-sm outline-none font-sans"
           />
         </div>
-        <div className="mb-2.5">
+        <div className="mb-2.5 relative">
           <label className="block text-xs font-semibold text-white/80 mb-1.5">Password</label>
           <input
-            type="password"
+            type={showPassword ? "text" : "password"}
             placeholder="••••••••"
             value={pass}
             onChange={e => setPass(e.target.value)}
-            className="w-full px-4 py-3 rounded-xl bg-white/10 border border-white/25 text-white placeholder-white/40 text-sm outline-none font-sans"
+            className="w-full px-4 py-3 pr-12 rounded-xl bg-white/10 border border-white/25 text-white placeholder-white/40 text-sm outline-none font-sans"
           />
+          <button
+            type="button"
+            onClick={() => setShowPassword(!showPassword)}
+            className="absolute right-4 top-[35px] text-white/60 text-xs font-semibold cursor-pointer"
+          >
+            {showPassword ? "Hide" : "View"}
+          </button>
         </div>
         <div className="text-right mb-6">
-          <span className="text-xs text-teal-400 font-semibold cursor-pointer">Forgot password?</span>
+          <span onClick={handleResetPassword} className="text-xs text-teal-400 font-semibold cursor-pointer">Forgot password?</span>
         </div>
 
         <button

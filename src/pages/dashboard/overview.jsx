@@ -184,7 +184,7 @@ export default function Overview() {
         
         {/* Swift Design Card */}
         <div className="lg:col-span-1">
-          <div className="bg-gradient-to-br from-slate-950 via-[#181830] to-slate-900 text-white rounded-3xl p-6 shadow-xl relative overflow-hidden border border-white/5 flex flex-col justify-between h-[230px] group transition-all duration-300 hover:shadow-2xl hover:border-teal-500/30">
+          <div className="bg-linear-to-br from-slate-950 via-[#181830] to-slate-900 text-white rounded-3xl p-6 shadow-xl relative overflow-hidden border border-white/5 flex flex-col justify-between h-[230px] group transition-all duration-300 hover:shadow-2xl hover:border-teal-500/30">
             {/* Glowing spots */}
             <div className="absolute -top-10 -right-10 w-44 h-44 bg-teal-500/10 rounded-full blur-3xl pointer-events-none group-hover:bg-teal-500/20 transition-all duration-500"></div>
             <div className="absolute -bottom-10 -left-10 w-44 h-44 bg-purple-500/10 rounded-full blur-3xl pointer-events-none group-hover:bg-purple-500/20 transition-all duration-500"></div>
@@ -201,7 +201,7 @@ export default function Overview() {
                   <path d="M5 17a8 8 0 0 1 0-10M9 19a12 12 0 0 1 0-14M13 21a16 16 0 0 1 0-18" strokeLinecap="round" />
                 </svg>
                 {/* Chip */}
-                <div className="w-8 h-6 rounded bg-gradient-to-tr from-yellow-300 via-amber-400 to-yellow-500 border border-amber-600/30 relative flex flex-wrap p-1 gap-[2px] overflow-hidden">
+                <div className="w-8 h-6 rounded bg-linear-to-tr from-yellow-300 via-amber-400 to-yellow-500 border border-amber-600/30 relative flex flex-wrap p-1 gap-[2px] overflow-hidden">
                   <div className="w-[45%] h-[40%] border-r border-b border-amber-800/20"></div>
                   <div className="w-[45%] h-[40%] border-b border-amber-800/20"></div>
                   <div className="w-[45%] h-[40%] border-r border-amber-800/20"></div>
