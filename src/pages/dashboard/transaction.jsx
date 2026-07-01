@@ -24,45 +24,14 @@ export default function Transaction() {
         const docRef = doc(db, "users", user.uid);
         const docSnap = await getDoc(docRef);
         
-        if (docSnap.exists() && docSnap.data().transactions) {
+        if (docSnap.exists() && Array.isArray(docSnap.data().transactions)) {
           setTransactions(docSnap.data().transactions);
-          localStorage.setItem(`transactions_${user.uid}`, JSON.stringify(docSnap.data().transactions));
         } else {
-          // If Firestore is empty, load from localStorage if it exists, otherwise use defaults
-          const saved = localStorage.getItem(`transactions_${user.uid}`);
-          if (saved) {
-            try {
-              const parsed = JSON.parse(saved);
-              setTransactions(parsed);
-              // Migrate localStorage to Firestore
-              await setDoc(docRef, { transactions: parsed }, { merge: true });
-            } catch (e) {
-              console.error("Error parsing local transactions: ", e);
-            }
-          } else {
-            const defaults = [
-              { id: 1, date: 'Jun 14', description: 'Stripe payout — May', account: 'Revenue', type: 'credit', amount: 8420.00, status: 'cleared' },
-              { id: 2, date: 'Jun 13', description: 'AWS infrastructure', account: 'Expenses', type: 'debit', amount: 1203.45, status: 'cleared' },
-              { id: 3, date: 'Jun 12', description: 'Office rent — June', account: 'Expenses', type: 'debit', amount: 3500.00, status: 'cleared' },
-              { id: 4, date: 'Jun 11', description: 'Client: Nnamdi Ltd', account: 'Revenue', type: 'credit', amount: 5000.00, status: 'pending' },
-              { id: 5, date: 'Jun 10', description: 'Payroll — 8 staff', account: 'Expenses', type: 'debit', amount: 12400.00, status: 'cleared' },
-              { id: 6, date: 'Jun 09', description: 'Google Ads', account: 'Marketing', type: 'debit', amount: 620.00, status: 'cleared' },
-            ];
-            setTransactions(defaults);
-            await setDoc(docRef, { transactions: defaults }, { merge: true });
-          }
+          setTransactions([]);
         }
       } catch (err) {
         console.error("Error loading transactions: ", err);
-        // Fallback to localStorage on error
-        const saved = localStorage.getItem(`transactions_${user.uid}`);
-        if (saved) {
-          try {
-            setTransactions(JSON.parse(saved));
-          } catch (e) {
-            console.error(e);
-          }
-        }
+        setTransactions([]);
       } finally {
         setLoadingDB(false);
       }
@@ -107,10 +76,6 @@ export default function Transaction() {
       // Save to Firestore
       const docRef = doc(db, "users", user.uid);
       await setDoc(docRef, { transactions: updatedTransactions }, { merge: true });
-
-      // Save to local storage
-      localStorage.setItem(`transactions_${user.uid}`, JSON.stringify(updatedTransactions));
-
       setTransactions(updatedTransactions);
       setForm({ date: '', description: '', account: '', type: 'debit', amount: '', status: 'cleared' })
       setEditId(null)
@@ -148,10 +113,6 @@ export default function Transaction() {
       // Save to Firestore
       const docRef = doc(db, "users", user.uid);
       await setDoc(docRef, { transactions: updatedTransactions }, { merge: true });
-
-      // Save to local storage
-      localStorage.setItem(`transactions_${user.uid}`, JSON.stringify(updatedTransactions));
-
       setTransactions(updatedTransactions);
     } catch (err) {
       console.error("Error deleting transaction: ", err);
