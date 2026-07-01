@@ -189,13 +189,13 @@ export default function Transaction() {
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
         <div>
           <h1 className="text-2xl md:text-3xl font-bold text-stone-800">Transactions</h1>
-          <p className="text-stone-500 text-sm md:text-base mt-1">June 2026 · {transactions.length} entries</p>
+          {/* <p className="text-stone-500 text-sm md:text-base mt-1">June 2026 · {transactions.length} entries</p> */}
         </div>
         <button
           onClick={() => setShowForm(!showForm)}
           className="px-4 sm:px-5 py-2.5 bg-teal-400 hover:bg-teal-500 text-white font-semibold rounded-lg transition-colors touch-target w-full sm:w-auto"
         >
-          + New Entry
+          + New Transaction
         </button>
       </div>
 

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+﻿import { useEffect, useMemo, useState } from 'react'
 import { auth, db } from '../../firebase'
 import { doc, getDoc, setDoc } from 'firebase/firestore'
 import { onAuthStateChanged } from 'firebase/auth'
@@ -208,7 +208,7 @@ export default function Invoices() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl md:text-3xl font-bold text-stone-800">Invoices</h1>
-          <p className="text-stone-500 mt-1">June 2026 · {invoices.length} entries</p>
+          {/* <p className="text-stone-500 mt-1">· {invoices.length} entries</p> */}
         </div>
         <button onClick={() => setShowForm(p => !p)} className="px-4 py-2.5 bg-teal-400 hover:bg-teal-500 text-white font-semibold rounded-lg transition-colors">
           + New Invoice
